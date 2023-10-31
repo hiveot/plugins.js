@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/hivelib/hivelib.iml" filepath="$PROJECT_DIR$/hivelib/hivelib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hiveoview/hiveoview.iml" filepath="$PROJECT_DIR$/hiveoview/hiveoview.iml" />
+      <module fileurl="file://$PROJECT_DIR$/plugins.js.iml" filepath="$PROJECT_DIR$/plugins.js.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zwavejs/zwavejs.iml" filepath="$PROJECT_DIR$/zwavejs/zwavejs.iml" />
+    </modules>
+  </component>
+</project>

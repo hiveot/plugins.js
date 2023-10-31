@@ -1,0 +1,32 @@
+{
+  // https://blog.logrocket.com/make-sharing-typescript-code-types-quick-easy/
+  // typescript should generate JS files that support nodejs type loading
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "emitDecoratorMetadata": false,
+    "esModuleInterop": true,
+    //    "experimentalDecorators": true,
+    "isolatedModules": true,
+    // Avoid runtime imports that are unnecessary
+    "inlineSourceMap": true,
+    "module": "CommonJS",
+    "rootDir": ".",
+    "paths": {
+      "@hivelib/*": [
+        "hivelib/src/*"
+      ]
+    },    "sourceMap": true,
+    "target": "ES2018",
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js"
+  ],
+  "exclude": [
+    "build/**",
+    "dist/**"
+  ]
+
+}

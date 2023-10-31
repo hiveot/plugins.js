@@ -1,0 +1,16 @@
+{
+  "name": "hivelib",
+  "version": "1.0.0",
+  "description": "HiveOT Javascript/Typescript client library",
+  "main": "index.ts",
+  "license": "MIT",
+  "dependencies": {
+    "@types/elliptic": "^6.4.16",
+    "@types/mqtt": "^2.5.0",
+    "bonjour-service": "^1.1.1",
+    "elliptic": "^6.5.4",
+    "jsrsasign": "^10.8.6",
+    "jsrsasign-util": "^1.0.5",
+    "mqtt": "^5.1.4"
+  }
+}

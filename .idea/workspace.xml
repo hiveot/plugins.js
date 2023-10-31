@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="7293fc63-4323-48a8-a49f-4b0524d317bf" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/hivelib.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/certs/Keys.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/ConnectToHub.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/HubClient.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/locateHub.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/transports/IHubTransport.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport/MqttTransport.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/transports/natstransport/NatsTransport.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/things/ThingTD.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/things/ThingValue.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/things/dataSchema.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/tsconfig.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/yarn.lock" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins.js.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tsconfig.base.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/.idea/zwavejs.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/docs/design.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/BindingConfig.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/ParseValues.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/ZWAPI.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/ZWaveJSBinding.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/getDeviceType.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/getPropID.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/getVidAffordance.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/logVid.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/main.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/parseController.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/src/parseNode.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/tsconfig.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/yarn-error.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zwavejs/yarn.lock" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FormatOnSaveOptions">
+    <option name="myRunOnSave" value="false" />
+    <option name="myAllFileTypesSelected" value="true" />
+    <option name="mySelectedFileTypes">
+      <set />
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="true" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="OptimizeOnSaveOptions">
+    <option name="myRunOnSave" value="false" />
+    <option name="myAllFileTypesSelected" value="true" />
+    <option name="mySelectedFileTypes">
+      <set />
+    </option>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="2XXOSiDsMfRe3tijJoVyzQJwCT2" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "main",
+    "go.import.settings.migrated": "true",
+    "javascript.nodejs.core.library.configured.version": "18.18.0",
+    "javascript.nodejs.core.library.typings.version": "18.18.0",
+    "last_opened_file_path": "/home/henk/dev/hiveot/plugins.js/hivelib/src/hubclient/transports/natstransport",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "yarn",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.17",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "google.protobuf.language",
+    "ts.external.directory.path": "/home/henk/dev/hiveot/plugins.js/zwavejs/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/hivelib/src/hubclient/transports/natstransport" />
+      <recent name="$PROJECT_DIR$/hive.js/src/hubclient" />
+      <recent name="$PROJECT_DIR$/lib" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/hivelib/src/hubclient/transports/natstransport" />
+      <recent name="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport" />
+      <recent name="$PROJECT_DIR$/zwavejs/src" />
+      <recent name="$PROJECT_DIR$/hive.js/src" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7293fc63-4323-48a8-a49f-4b0524d317bf" name="Changes" comment="" />
+      <created>1698771963708</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1698771963708</updated>
+      <workItem from="1698771964793" duration="1055000" />
+      <workItem from="1698776712036" duration="2292000" />
+      <workItem from="1698779190289" duration="17447000" />
+      <workItem from="1698812533029" duration="31800000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="VgoProject">
+    <integration-enabled>false</integration-enabled>
+    <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

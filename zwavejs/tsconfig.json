@@ -1,0 +1,51 @@
+{
+  // typescript should generate JS files that support nodejs type loading
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "emitDecoratorMetadata": false,
+    "esModuleInterop": true,
+    //    "experimentalDecorators": true,
+    "isolatedModules": true,
+    // Avoid runtime imports that are unnecessary
+    "inlineSourceMap": true,
+      "lib": ["es2018"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "noEmitOnError": false,
+    "noErrorTruncation": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "outDir": "build",
+    "paths": {
+      "@hivelib/*": [
+        "hivelib/src/*"
+      ]
+    },
+    "preserveSymlinks": true,
+    /* Necessary to support yarn portals with the node-modules linker, used by yarn link (berry) */
+    "pretty": true,
+    "resolveJsonModule": true,
+    "rootDir": ".",
+    "skipLibCheck": true,
+    "sourceMap": true,
+        "target": "ES2018",
+    //    "types": [
+    //      "node"
+    //    ],
+    // watch=true breaks CI build steps
+    "watch": false
+  },
+  "references": [
+    {"path": "../hivelib"}
+  ],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js"
+  ],
+  "exclude": [
+    "build/**",
+    "dist/**"
+  ]
+}
