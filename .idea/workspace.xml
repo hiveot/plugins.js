@@ -4,50 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7293fc63-4323-48a8-a49f-4b0524d317bf" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/hivelib.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/package.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/src/certs/Keys.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/ConnectToHub.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/HubClient.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/locateHub.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/transports/IHubTransport.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport/MqttTransport.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/transports/natstransport/NatsTransport.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/src/things/ThingTD.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/src/things/ThingValue.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/src/things/dataSchema.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/tsconfig.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hivelib/yarn.lock" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/plugins.js.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tsconfig.base.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/.idea/zwavejs.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/Makefile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/docs/design.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/package.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/BindingConfig.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/ParseValues.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/ZWAPI.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/ZWaveJSBinding.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/getDeviceType.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/getPropID.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/getVidAffordance.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/logVid.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/main.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/parseController.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/src/parseNode.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/tsconfig.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/yarn-error.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zwavejs/yarn.lock" afterDir="false" />
-    </list>
+    <list default="true" id="7293fc63-4323-48a8-a49f-4b0524d317bf" name="Changes" comment="Dev iteration, initial commit of javascript/typescript plugins." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -138,15 +95,50 @@
       <workItem from="1698771964793" duration="1055000" />
       <workItem from="1698776712036" duration="2292000" />
       <workItem from="1698779190289" duration="17447000" />
-      <workItem from="1698812533029" duration="31800000" />
+      <workItem from="1698812533029" duration="33131000" />
     </task>
+    <task id="LOCAL-00001" summary="Dev iteration, initial commit of javascript/typescript plugins.">
+      <option name="closed" value="true" />
+      <created>1698902791488</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1698902791488</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="main" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="Initial commit" />
+    <MESSAGE value="Dev iteration, initial commit of javascript/typescript plugins." />
+    <option name="LAST_COMMIT_MESSAGE" value="Dev iteration, initial commit of javascript/typescript plugins." />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
