@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7293fc63-4323-48a8-a49f-4b0524d317bf" name="Changes" comment="Dev iteration, initial commit of javascript/typescript plugins." />
+    <list default="true" id="7293fc63-4323-48a8-a49f-4b0524d317bf" name="Changes" comment="Dev iteration, initial commit of javascript/typescript plugins.">
+      <change beforePath="$PROJECT_DIR$/plugins.js.iml" beforeDir="false" afterPath="$PROJECT_DIR$/plugins.ts.iml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -63,10 +65,10 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "yarn",
-    "project.structure.last.edited": "Project",
+    "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "google.protobuf.language",
+    "settings.editor.selected.configurable": "project.scopes",
     "ts.external.directory.path": "/home/henk/dev/hiveot/plugins.js/zwavejs/node_modules/typescript/lib",
     "vue.rearranger.settings.migration": "true"
   }
@@ -84,6 +86,21 @@
       <recent name="$PROJECT_DIR$/hive.js/src" />
     </key>
   </component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="plugins.ts" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="plugins.ts" />
+      <option name="filePath" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -95,7 +112,7 @@
       <workItem from="1698771964793" duration="1055000" />
       <workItem from="1698776712036" duration="2292000" />
       <workItem from="1698779190289" duration="17447000" />
-      <workItem from="1698812533029" duration="33131000" />
+      <workItem from="1698812533029" duration="35295000" />
     </task>
     <task id="LOCAL-00001" summary="Dev iteration, initial commit of javascript/typescript plugins.">
       <option name="closed" value="true" />
@@ -105,7 +122,15 @@
       <option name="project" value="LOCAL" />
       <updated>1698902791488</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Dev iteration, initial commit of javascript/typescript plugins.">
+      <option name="closed" value="true" />
+      <created>1698903869919</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1698903869919</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
