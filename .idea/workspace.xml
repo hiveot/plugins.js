@@ -4,13 +4,49 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7293fc63-4323-48a8-a49f-4b0524d317bf" name="Changes" comment="Dev iteration, initial commit of javascript/typescript plugins.">
-      <change beforePath="$PROJECT_DIR$/plugins.js.iml" beforeDir="false" afterPath="$PROJECT_DIR$/plugins.ts.iml" afterDir="false" />
+    <list default="true" id="7293fc63-4323-48a8-a49f-4b0524d317bf" name="Changes" comment="renamed to plugins.ts">
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport/Subscription.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/hubclient/transports/transports_test.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/keys/ECDSAKeys.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/keys/Ed25519Keys.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/keys/IHiveKeys.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/keys/keys_test.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/keys/test/crypto-test.ts.old" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/keys/test/elliptic_test.ts.old" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/src/keys/test/testkeys.ts.old" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hivelib/yarn-error.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yarn-error.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hivelib/hivelib.iml" beforeDir="false" afterPath="$PROJECT_DIR$/hivelib/hivelib.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hivelib/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/hivelib/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hivelib/src/certs/Keys.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/hivelib/src/hubclient/ConnectToHub.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hivelib/src/hubclient/ConnectToHub.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hivelib/src/hubclient/HubClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hivelib/src/hubclient/HubClient.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hivelib/src/hubclient/transports/IHubTransport.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hivelib/src/hubclient/transports/IHubTransport.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport/MqttTransport.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport/MqttTransport.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hivelib/src/things/ThingValue.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hivelib/src/things/ThingValue.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hivelib/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/hivelib/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hivelib/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/hivelib/yarn.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsconfig.base.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.base.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zwavejs/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/zwavejs/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zwavejs/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/zwavejs/tsconfig.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
   </component>
   <component name="FormatOnSaveOptions">
     <option name="myRunOnSave" value="false" />
@@ -19,11 +55,16 @@
       <set />
     </option>
   </component>
+  <component name="GOROOT" url="file:///snap/go/10389" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GoLibraries">
     <option name="indexEntireGoPath" value="true" />
+  </component>
+  <component name="JsBowerSettings">
+    <bower-package value="" />
+    <bower.json value="" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -47,46 +88,52 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "main",
-    "go.import.settings.migrated": "true",
-    "javascript.nodejs.core.library.configured.version": "18.18.0",
-    "javascript.nodejs.core.library.typings.version": "18.18.0",
-    "last_opened_file_path": "/home/henk/dev/hiveot/plugins.js/hivelib/src/hubclient/transports/natstransport",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "yarn",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.17",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "project.scopes",
-    "ts.external.directory.path": "/home/henk/dev/hiveot/plugins.js/zwavejs/node_modules/typescript/lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;18.18.0&quot;,
+    &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;18.18.0&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/henk/dev/hiveot/plugins.ts/hivelib/src/hubclient/transports/transports_test.js&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;yarn&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.nodejs&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/home/henk/dev/hiveot/plugins.ts/hivelib/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/hivelib" />
+      <recent name="$PROJECT_DIR$/hivelib/src/keys" />
+      <recent name="$PROJECT_DIR$/hivelib/src/keys/test" />
       <recent name="$PROJECT_DIR$/hivelib/src/hubclient/transports/natstransport" />
       <recent name="$PROJECT_DIR$/hive.js/src/hubclient" />
-      <recent name="$PROJECT_DIR$/lib" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/hivelib/src/keys/test" />
       <recent name="$PROJECT_DIR$/hivelib/src/hubclient/transports/natstransport" />
       <recent name="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport" />
       <recent name="$PROJECT_DIR$/zwavejs/src" />
       <recent name="$PROJECT_DIR$/hive.js/src" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Node.js.transports_test.js">
     <configuration default="true" type="JetRunConfigurationType">
       <module name="plugins.ts" />
       <method v="2">
@@ -100,6 +147,20 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="crypto-test.js" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="src/keys/test/crypto-test.js" working-dir="$PROJECT_DIR$/hivelib">
+      <method v="2" />
+    </configuration>
+    <configuration name="keys_test.js" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="hivelib/build/src/keys/keys_test.js" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
+    <configuration name="transports_test.js" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="build/src/hubclient/transports/transports_test.js" working-dir="$PROJECT_DIR$/hivelib">
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Node.js.crypto-test.js" />
+      <item itemvalue="Node.js.keys_test.js" />
+      <item itemvalue="Node.js.transports_test.js" />
+    </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -113,6 +174,9 @@
       <workItem from="1698776712036" duration="2292000" />
       <workItem from="1698779190289" duration="17447000" />
       <workItem from="1698812533029" duration="35295000" />
+      <workItem from="1698953350709" duration="41310000" />
+      <workItem from="1699058486362" duration="55516000" />
+      <workItem from="1699160461241" duration="3695000" />
     </task>
     <task id="LOCAL-00001" summary="Dev iteration, initial commit of javascript/typescript plugins.">
       <option name="closed" value="true" />
@@ -130,11 +194,69 @@
       <option name="project" value="LOCAL" />
       <updated>1698903869919</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="renamed to plugins.ts">
+      <option name="closed" value="true" />
+      <created>1698953385391</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1698953385391</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/ConnectToHub.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/ConnectToHub.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/ConnectToHub.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/HubClient.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/HubClient.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/HubClient.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/IHubTransport.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/IHubTransport.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/IHubTransport.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/natstransport/NatsTransport.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/natstransport/NatsTransport.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/natstransport/NatsTransport.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/things/ThingTD.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/things/ThingTD.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/things/ThingTD.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/locateHub.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/locateHub.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/locateHub.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/things/dataSchema.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/things/dataSchema.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/things/dataSchema.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/things/ThingValue.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/things/ThingValue.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/things/ThingValue.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport/MqttTransport.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport/MqttTransport.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport/MqttTransport.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/vocab/vocabulary.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/vocab/vocabulary.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/vocab/vocabulary.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/keys/keys_test.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/keys/keys_test.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/keys/keys_test.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/keys/IHiveKeys.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/keys/IHiveKeys.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/keys/IHiveKeys.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/keys/ECDSAKeys.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/keys/ECDSAKeys.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/keys/ECDSAKeys.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/transports_test.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/transports_test.d.ts" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/transports_test.d.ts.map" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/transports_test.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/IHubTransport.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/mqtttransport/MqttTransport.js" />
+        <option value="$PROJECT_DIR$/hivelib/src/hubclient/transports/transports_test.js" />
+      </list>
+    </option>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -163,11 +285,65 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Initial commit" />
     <MESSAGE value="Dev iteration, initial commit of javascript/typescript plugins." />
-    <option name="LAST_COMMIT_MESSAGE" value="Dev iteration, initial commit of javascript/typescript plugins." />
+    <MESSAGE value="renamed to plugins.ts" />
+    <option name="LAST_COMMIT_MESSAGE" value="renamed to plugins.ts" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
     <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/hivelib/src/keys/test/ed25519_test.ts</url>
+          <line>4</line>
+          <option name="timeStamp" value="25" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/hivelib/src/keys/test/ed25519_test.ts</url>
+          <line>42</line>
+          <option name="timeStamp" value="29" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/hivelib/src/keys/test/elliptic_test.ts.old</url>
+          <line>63</line>
+          <option name="timeStamp" value="36" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/hivelib/src/keys/test/elliptic_test.ts.old</url>
+          <line>125</line>
+          <option name="timeStamp" value="37" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/hivelib/src/keys/test/elliptic_test.ts.old</url>
+          <line>122</line>
+          <option name="timeStamp" value="57" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/hivelib/src/keys/test/crypto-test.ts.old</url>
+          <line>100</line>
+          <option name="timeStamp" value="58" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/hivelib/src/keys/test/crypto-test.ts.old</url>
+          <line>115</line>
+          <option name="timeStamp" value="60" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/hivelib/src/hubclient/transports/transports_test.ts</url>
+          <line>10</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="73" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/hivelib/src/hubclient/transports/transports_test.ts</url>
+          <line>20</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="75" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

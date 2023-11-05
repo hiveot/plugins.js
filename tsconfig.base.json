@@ -3,16 +3,17 @@
   "compilerOptions": {
     "baseUrl": ".",
     // instruct tsc that there are project references
+    // this also sets the default rootdir to the tsconfig.json directory
     "composite": true,
     "declaration": true,
     // adds source maps for .d.ts declaration files.
     // Goto definition in the IDE will go to the actual file, not the .d.ts
     "declarationMap": true,
     // paths avoids the need for relative paths
-    "paths": {
-      "hivelib": ["hivelib/src"],
-      "hiveoview": ["hiveoview/src"],
-      "zwavejs": ["zwavejs/src"]
-    }
+//    "paths": {
+//      "@hivelib": ["hivelib/src"],
+//      "@hiveoview": ["hiveoview/src"],
+//      "@zwavejs": ["zwavejs/src"]
+//    }
   }
 }

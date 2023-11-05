@@ -13,19 +13,19 @@
 export class ThingValue extends Object {
 
     // AgentID is the ID of the device or service that owns the Thing
-    public agentID: string
+    public agentID: string = ""
 
     // ThingID or capabilityID of the thing itself
-    public thingID: string
+    public thingID: string = ""
 
     // Name of event, action or property as defined in the TD event/action map.
-    public name: string
+    public name: string = ""
 
     // Data with serialized value payload, as defined by the TD affordance DataSchema
-    public data: string
+    public data: string = ""
 
     // Timestamp the value was created in unix time, msec since Epoch Jan 1st,1970 00:00 utc
-    public createdMSec: bigint
+    public createdMSec: number = 0
 
     // Expiry time of the value in msec since epoc.
     // Events expire based on their update interval.
@@ -38,8 +38,8 @@ export class ThingValue extends Object {
     // ID of the publisher of the value
     // For events this is the agentID
     // For actions,config and rpc this is the remote user sending the request
-    public senderID: string
+    public senderID: string = ""
 
     // Type of value, event, action, config, rpc
-    public valueType: string
+    public valueType: string = ""
 }

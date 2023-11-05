@@ -1,4 +1,4 @@
-import {HubClient} from "./HubClient";
+import {HubClient} from "@hivelib/hubclient/HubClient.js";
 
 
 
@@ -31,8 +31,8 @@ import {HubClient} from "./HubClient";
 //         return null
 //     }
 //     // 2. obtain the CA public cert to verify the server
-//     let caCertFile = path.Join(certDir, certs.DefaultCaCertFile)
-//     caCert, err := certs.LoadX509CertFromPEM(caCertFile)
+//     let caCertFile = path.Join(certDir, keys.DefaultCaCertFile)
+//     caCert, err := keys.LoadX509CertFromPEM(caCertFile)
 //     if err != nil {
 //         return nil, err
 //     }

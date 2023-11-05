@@ -18,11 +18,11 @@
     "noImplicitAny": true,
     "noImplicitThis": true,
     "outDir": "build",
-    "paths": {
-      "@hivelib/*": [
-        "hivelib/src/*"
-      ]
-    },
+//    "paths": {
+//      "@hivelib/*": [
+//        "hivelib/src/*"
+//      ]
+//    },
     "preserveSymlinks": true,
     /* Necessary to support yarn portals with the node-modules linker, used by yarn link (berry) */
     "pretty": true,

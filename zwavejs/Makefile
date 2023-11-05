@@ -10,7 +10,7 @@ PLUGINS_HOME=$(INSTALL_HOME)/plugins
 all: dist
 
 js: .FORCE  ## Compile typescript
-	tsc
+	npx tsc
 
 dist: .FORCE ## Build binary app using pkg and esbuild
 	tsc

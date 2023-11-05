@@ -1,9 +1,9 @@
 // Client to the hub gatewayclient
 import {EventTypes, MessageTypes} from '../vocab/vocabulary.js';
 import type { ThingTD } from '../things/ThingTD.js';
-import {IHubTransport, ISubscription} from "./transports/IHubTransport";
-import {ThingValue} from "../things/ThingValue";
-import {MqttTransport} from "./transports/mqtttransport/MqttTransport";
+import {IHubTransport, ISubscription} from "./transports/IHubTransport.js";
+import {ThingValue} from "../things/ThingValue.js";
+import {MqttTransport} from "./transports/mqtttransport/MqttTransport.js";
 
 // HubClient implements the javascript client for connecting to the hub,
 // using one of available transports.
@@ -139,8 +139,9 @@ export  class HubClient {
 		}
 	}
 
-	createKeyPair(): { serializedKP: string, pubKey: string } {
-		return this.tp.createKeyPair()
+	createKeyPair(): { privPEM: string, pubPEM: string } {
+		let kp =  this.tp.createKeyPair()
+		return kp
 	}
 	// disconnect if connected
 	async disconnect() {
@@ -356,11 +357,11 @@ export function NewHubClient(url: string, clientID: string, caCertPem:string, co
 	//	panic("kp is required")
 	//}
 	let tp: IHubTransport
-	if (core == "nats" || url.startsWith("nats")) {
-		// tp = NewNatsTransport(url, clientID, caCertPem)
-	} else {
+	// if (core == "nats" || url.startsWith("nats")) {
+	// 	tp = NewNatsTransport(url, clientID, caCertPem)
+	// } else {
 		tp = new MqttTransport(url, clientID, caCertPem)
-	}
+	// }
 	let hc = NewHubClientFromTransport(tp, clientID)
 
 	return hc

@@ -25,9 +25,9 @@ export interface IHubTransport{
     connectWithToken(serializedKP: string, token: string): Promise<void>;
 
     // CreateKeyPair returns a new set of serialized public/private key pair.
-    // @returns serializedKP contains the serialized public/private key pair
-    // @returns pubKey contains the serialized public key to be shared
-    createKeyPair(): {serializedKP:string, pubKey:string};
+    // @returns privPEM contains the serialized public/private key pair in PEM format
+    // @returns pubPEM contains the serialized public key to be shared in PEM format
+    createKeyPair(): {privPEM:string, pubPEM:string};
 
     // Disconnect from the message bus
     disconnect():void;
@@ -60,5 +60,5 @@ export interface IHubTransport{
     // @param cb is the callback to invoke when a message is received
     // @returns subscription object that needs to be unsubscribed when done
     subRequest(address: string,
-               handler: (addr: string, payload: string)=> string): ISubscription;
+               cb: (addr: string, payload: string)=> string): ISubscription;
 }
