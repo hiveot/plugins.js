@@ -1,9 +1,8 @@
 #!/usr/bin/env node
-import "./lib/hubapi.js";
 import {env, exit} from "process";
-import {HubClient, NewHubClient} from "@hivelib/hubclient/HubClient"
-import {loadCerts, parseCommandlineConfig} from "./BindingConfig.js";
+import {HubClient, NewHubClient} from "../../hivelib/src/hubclient/HubClient"
 import {ZwaveJSBinding} from "./ZWaveJSBinding.js";
+import {loadCerts, parseCommandlineConfig} from "./BindingConfig.js";
 import path from "path";
 import {locateHub} from "@hivelib/hubclient/locateHub";
 import fs from "fs";

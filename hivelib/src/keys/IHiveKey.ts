@@ -5,19 +5,22 @@ export interface IHiveKeys {
     // createKey create a new public and private ecdsa or ed25519 key pair
     createKey():void|Promise<void>
 
-    // importPrivateFromPEM reads the key-pair from the PEM private key
-    // This returns an error if the PEM is not a valid key
-    importPrivateFromPEM(privatePEM:string):void
+    // exportPrivateToPEM returns the encoded private key if available
+    // This the encoding depends on the key used.
+    //  key type ecdsa, rsa use PEM encoding
+    //  key type ed25519 encodes it to base64
+    //  key type nkeys encodes when generating its seed
+    exportPrivate():string
 
-    // importPublicFromPEM reads the public key from the PEM data.
+    // exportPublicToPEM returns the encoded public key if available
+    exportPublic(): string
+
+    // importPrivate reads the key-pair from the previously exported private key
+    importPrivate(privateEnc:string):void
+
+    // importPublic reads the public key from the PEM data.
     // This returns an error if the PEM is not a valid public key
-    importPublicFromPEM(publicPEM:string):void
-
-    // exportPrivateToPEM returns the PEM encoded private key if available
-    exportPrivateToPEM():string
-
-    // exportPublicToPEM returns the PEM encoded public key if available
-    exportPublicToPEM(): string
+    importPublic(publicEnc:string):void
 
     // return the signature of a message signed using this key
     // this requires a private key to be created or imported
