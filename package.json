@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "@noble/curves": "^1.2.0",
-    "asn1js": "^3.0.5",
-    "js-crypto-ec": "^1.0.7",
-    "js-crypto-key-utils": "^1.0.7",
-    "js-crypto-utils": "^1.0.7"
-  }
-}

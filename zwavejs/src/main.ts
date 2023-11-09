@@ -6,6 +6,7 @@ import {loadCerts, parseCommandlineConfig} from "./BindingConfig.js";
 import path from "path";
 import {locateHub} from "@hivelib/hubclient/locateHub";
 import fs from "fs";
+import { ECDSAKey } from "@hivelib/keys/ECDSAKey";
 
 
 async function main() {
@@ -30,8 +31,9 @@ async function main() {
     let clientID = appConfig.agentID
     let keyPath = path.join(appConfig.certsDir,clientID+".key")
     let tokenPath = path.join(appConfig.certsDir,clientID+".token")
-    let serKey = fs.readFileSync(keyPath).toString()
+    // let serKey = fs.readFileSync(keyPath).toString()
     let token = fs.readFileSync(tokenPath).toString()
+    let myKey = new ECDSAKey().importPrivate(keyPath)
 
     let core = ""
     if (!appConfig.hubURL) {
@@ -40,7 +42,7 @@ async function main() {
         core = uc.core
     }
     let hc = NewHubClient(appConfig.hubURL,clientID,caCertPem,core)
-    await hc.connectWithToken(serKey,token)
+    await hc.connectWithToken(myKey,token)
 
 //--- Step 3: Start the binding and zwavejs driver
     let binding = new ZwaveJSBinding(hc, appConfig);

@@ -1,38 +1,17 @@
 
 // ED25519 keys implementation using nodeJS
-import {IHiveKeys} from "@hivelib/keys/IHiveKeys.js";
+import {IHiveKey} from "@keys/IHiveKey.js";
 import crypto from "crypto";
 
-export class Ed25519Keys implements IHiveKeys{
+export class Ed25519Key implements IHiveKey{
     privKey: crypto.KeyObject | undefined
     pubKey: crypto.KeyObject | undefined
 
     constructor() {
     }
 
-    // createKey create a new public and private ed25519 key pair.
-    public createKey():void|Promise<void>{
-        let kp = crypto.generateKeyPairSync("ed25519")
-        this.privKey = kp.privateKey
-        this.pubKey = kp.publicKey
-    }
-
-    // importPrivateFromPEM reads the key-pair from the PEM private key
-    // This throws an error if the PEM is not a valid key
-    public importPrivateFromPEM(privatePEM:string):void{
-        // cool! crypto does all the work
-        this.privKey = crypto.createPrivateKey(privatePEM)
-        this.pubKey = crypto.createPublicKey(privatePEM)
-    }
-
-    // importPublicFromPEM reads the public key from the PEM data.
-    // This throws an error if the PEM is not a valid public key
-    public importPublicFromPEM(publicPEM:string):void{
-        this.pubKey = crypto.createPublicKey(publicPEM)
-    }
-
-    // exportPrivateToPEM returns the PEM encoded private key if available
-    public exportPrivateToPEM():string{
+    // exportPrivate returns the encoded private key if available
+    public exportPrivate():string{
         if (!this.privKey) {
             throw("private key not created or imported")
         }
@@ -43,8 +22,8 @@ export class Ed25519Keys implements IHiveKeys{
         return privPEM.toString()
     }
 
-    // exportPublicToPEM returns the PEM encoded public key if available
-    public exportPublicToPEM(): string {
+    // exportPublic returns the encoded public key if available
+    public exportPublic(): string {
         if (!this.pubKey) {
             throw("public key not created or imported")
         }
@@ -53,6 +32,31 @@ export class Ed25519Keys implements IHiveKeys{
             type:"spki",
         })
         return pubPEM.toString()
+    }
+
+    // importPrivate reads the key-pair from the encoded private key
+    // This throws an error if the encoding is not a valid key
+    public importPrivate(privateEnc:string):IHiveKey{
+        // cool! crypto does all the work
+        this.privKey = crypto.createPrivateKey(privateEnc)
+        this.pubKey = crypto.createPublicKey(privateEnc)
+        return this
+    }
+
+    // importPublic reads the public key from the encoded data.
+    // This throws an error if the encoding is not a valid public key
+    public importPublic(publicEnc:string):IHiveKey{
+        this.pubKey = crypto.createPublicKey(publicEnc)
+        return this
+    }
+
+
+    // initialize generates a new key set using its curve algorithm
+    public initialize(): IHiveKey {
+        let kp = crypto.generateKeyPairSync("ed25519")
+        this.privKey = kp.privateKey
+        this.pubKey = kp.publicKey
+        return this
     }
 
     // return the signature of a message signed using this key

@@ -1,9 +1,9 @@
-// Client to the hub gatewayclient
 import {EventTypes, MessageTypes} from '../vocab/vocabulary.js';
 import type { ThingTD } from '../things/ThingTD.js';
 import {IHubTransport, ISubscription} from "./transports/IHubTransport.js";
 import {ThingValue} from "../things/ThingValue.js";
 import {MqttTransport} from "./transports/mqtttransport/MqttTransport.js";
+import {IHiveKey} from "@keys/IHiveKey";
 
 // HubClient implements the javascript client for connecting to the hub,
 // using one of available transports.
@@ -20,8 +20,8 @@ export  class HubClient {
 		this.tp = transport;
 		this.status = 'disconnected';
 		this.statusMessage = 'Please login to continue';
-		transport.onConnect = ()=>{this.connectionStatusHandler(true)}
-		transport.onDisconnect = ()=>{this.connectionStatusHandler(false)}
+		transport.setOnConnect( ()=>{this.connectionStatusHandler(true)})
+		transport.setOnDisconnect( ()=>{this.connectionStatusHandler(false)})
 	}
 
 	// MakeAddress creates a message address optionally with wildcards
@@ -114,7 +114,7 @@ export  class HubClient {
 
 	// connect and login to the Hub gateway using a JWT token
 	// host is the server address
-	async connectWithToken(kp: string, jwtToken: string) {
+	async connectWithToken(kp: IHiveKey, jwtToken: string) {
 		// pass-through to the underlying transport
 		return this.tp.connectWithToken(kp, jwtToken);
 	}
@@ -139,7 +139,7 @@ export  class HubClient {
 		}
 	}
 
-	createKeyPair(): { privPEM: string, pubPEM: string } {
+	createKeyPair(): IHiveKey {
 		let kp =  this.tp.createKeyPair()
 		return kp
 	}

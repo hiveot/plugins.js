@@ -1,6 +1,6 @@
 // mqtt and nats transport testing
 
-import {MqttTransport} from "@hivelib/hubclient/transports/mqtttransport/MqttTransport";
+import { MqttTransport } from "@hivelib/hubclient/transports/mqtttransport/MqttTransport";
 import {env, exit} from "process";
 import * as process from "process";
 

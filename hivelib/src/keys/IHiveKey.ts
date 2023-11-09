@@ -1,9 +1,7 @@
 
 // Interface of standardized key and signature functions.
 // Intended to standardize the maze of crypto methods,algorithms and so on.
-export interface IHiveKeys {
-    // createKey create a new public and private ecdsa or ed25519 key pair
-    createKey():void|Promise<void>
+export interface IHiveKey {
 
     // exportPrivateToPEM returns the encoded private key if available
     // This the encoding depends on the key used.
@@ -16,11 +14,15 @@ export interface IHiveKeys {
     exportPublic(): string
 
     // importPrivate reads the key-pair from the previously exported private key
-    importPrivate(privateEnc:string):void
+    // This throws an error if the encoding is unknown.
+    importPrivate(privateEnc:string):IHiveKey
 
     // importPublic reads the public key from the PEM data.
-    // This returns an error if the PEM is not a valid public key
-    importPublic(publicEnc:string):void
+    // This throws an error if the encoding is unknown.
+    importPublic(publicEnc:string):IHiveKey
+
+    // initialize create a new public and private ecdsa or ed25519 key pair
+    initialize():IHiveKey//void|Promise<void>
 
     // return the signature of a message signed using this key
     // this requires a private key to be created or imported

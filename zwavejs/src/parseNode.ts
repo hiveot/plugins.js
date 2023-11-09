@@ -10,14 +10,14 @@ import {
     ZWavePlusRoleType
 } from "zwave-js";
 import {CommandClasses, InterviewStage} from '@zwave-js/core';
-import {ActionAffordance, EventAffordance, PropertyAffordance, ThingTD} from "@lib/things/ThingTD.js";
-import {ActionTypes, DataType, EventTypes, PropTypes} from "@lib/vocab/vocabulary.js";
+import {ActionAffordance, EventAffordance, PropertyAffordance, ThingTD} from "@hivelib/things/ThingTD.js";
+import {ActionTypes, DataType, EventTypes, PropTypes} from "@hivelib/vocab/vocabulary.js";
 import type {ZWAPI} from "./ZWAPI.js";
 import {logVid} from "./logVid.js";
 import {getPropID} from "./getPropID.js";
 import {getVidAffordance, VidAffordance} from "./getVidAffordance.js";
 import {getDeviceType} from "./getDeviceType.js";
-import {DataSchema} from "@lib/things/dataSchema.js";
+import {DataSchema} from "@hivelib/things/dataSchema.js";
 
 
 // Add the ZWave value data to the TD as an action

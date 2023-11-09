@@ -1,23 +1,23 @@
 
 // test1: generate, export and import an ECDSA key pair
 
-import {ECDSAKeys} from "./ECDSAKeys.js";
-import {Ed25519Keys} from "./Ed25519Keys.js";
+import {ECDSAKey} from "./ECDSAKey.js";
+// import {Ed25519Key} from "./Ed25519Key.js";
 
 async function test1() {
     const message = "hello world"
 
-    let keys1 = new Ed25519Keys()
+    let keys1 = new ECDSAKey()
     // let keys1 = new EcdsaKeys()
-    keys1.createKey()
+    keys1.initialize()
 
-    let privPEM = keys1.exportPrivateToPEM()
-    let pubPEM = keys1.exportPublicToPEM()
+    let privPEM = keys1.exportPrivate()
+    let pubPEM = keys1.exportPublic()
 
     // let keys2 = new EcdsaKeys()
-    let keys2 = new Ed25519Keys()
-    keys2.importPrivateFromPEM(privPEM)
-    keys2.importPublicFromPEM(pubPEM)
+    let keys2 = new ECDSAKey()
+    keys2.importPrivate(privPEM)
+    keys2.importPublic(pubPEM)
 
     let msgBuf = Buffer.from(message)
     let signature = keys1.sign(msgBuf)

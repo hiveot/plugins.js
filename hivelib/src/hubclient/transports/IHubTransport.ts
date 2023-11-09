@@ -1,4 +1,6 @@
 // ISubscription interface to underlying subscription mechanism
+import {IHiveKey} from "@keys/IHiveKey";
+
 export interface ISubscription {
     unsubscribe():void;
 }
@@ -20,21 +22,22 @@ export interface IHubTransport{
 
     // ConnectWithToken connects to the messaging server using an authentication token
     // and pub/private keys provided when creating an instance of the hub client.
-    // @param serializedKP is the key generated with CreateKey.
+    // @param key is the key generated with createKey.
     // @param token is created by the auth service.
-    connectWithToken(serializedKP: string, token: string): Promise<void>;
+    connectWithToken(key: IHiveKey, token: string): Promise<void>;
 
-    // CreateKeyPair returns a new set of serialized public/private key pair.
-    // @returns privPEM contains the serialized public/private key pair in PEM format
-    // @returns pubPEM contains the serialized public key to be shared in PEM format
-    createKeyPair(): {privPEM:string, pubPEM:string};
+    // CreateKeyPair returns a new key for authentication and signing
+    // @returns key contains the public/private key pair
+    // @returns pubEnc contains the encoded public key
+    createKeyPair(): IHiveKey;
 
     // Disconnect from the message bus
     disconnect():void;
 
     // set handler for tracking connections
-    set onConnect( handler:()=>void);
-    set onDisconnect( handler:()=>void);
+    setOnConnect( handler:()=>void): void;
+
+    setOnDisconnect( handler:()=>void): void;
 
     // Pub for publications on any address
     // @param address to publish on

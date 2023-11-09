@@ -2,22 +2,26 @@
   "name": "hivelib",
   "version": "1.0.0",
   "description": "HiveOT Javascript/Typescript client library",
-  "main": "index.ts",
+  "main": "hubclient/transports/transports_test.js",
+  "files": [
+    "build/"
+  ],
   "license": "MIT",
   "scripts": {
     "build": "tsc && tsc-alias",
-    "test": "node build/src/hubclient/transports/transports_test.js"
+    "test": "tsx src/hubclient/transports/transports_test.ts"
   },
   "comment": "type commonjs is critical for successful typescript build. Forget TS otherwise",
   "type": "commonjs",
   "dependencies": {
-    "@types/mqtt": "^2.5.0",
     "bonjour-service": "^1.1.1",
     "mqtt": "^5.1.4"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.2",
+    "tsc": "^2.0.4",
     "tsc-alias": "^1.8.8",
+    "tsx": "^3.14.0",
     "typescript": "^5.2.2"
   }
 }

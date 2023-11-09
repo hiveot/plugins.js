@@ -1,51 +1,56 @@
 {
   // typescript should generate JS files that support nodejs type loading
-  "extends": "../tsconfig.base.json",
+ "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
     "allowJs": true,
+    "baseUrl": ".",
     "checkJs": false,
-    "emitDecoratorMetadata": false,
+    // instruct tsc that there are project references
+    // this also sets the default rootdir to the tsconfig.json directory
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
     "esModuleInterop": true,
-    //    "experimentalDecorators": true,
-    "isolatedModules": true,
+
+    "emitDecoratorMetadata": false,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "incremental": true,
+    // "inlineSourceMap": true,
+//    "isolatedModules": true,
     // Avoid runtime imports that are unnecessary
-    "inlineSourceMap": true,
-      "lib": ["es2018"],
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "noEmitOnError": false,
-    "noErrorTruncation": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "outDir": "build",
-//    "paths": {
-//      "@hivelib/*": [
-//        "hivelib/src/*"
-//      ]
-//    },
+      "lib": ["dom","esnext"],
+    "module": "node16",
+    "moduleResolution": "NodeNext",
+    "noEmit": false,
+    "outDir": "./build",
+    // paths avoids the need for relative paths
+    "paths": {
+      "@hivelib/*": ["../hivelib/src/*"],
+      "@keys/*": ["../hivelib/src/keys/*"],
+      "@zwavejs/*": ["./src/*"]
+    },
     "preserveSymlinks": true,
     /* Necessary to support yarn portals with the node-modules linker, used by yarn link (berry) */
     "pretty": true,
-    "resolveJsonModule": true,
-    "rootDir": ".",
-    "skipLibCheck": true,
+
+    "rootDir": "src",
     "sourceMap": true,
-        "target": "ES2018",
-    //    "types": [
-    //      "node"
-    //    ],
-    // watch=true breaks CI build steps
-    "watch": false
+    "target": "esnext",
+    "types": [
+         "node"
+    ],
+    "strict": true,
   },
   "references": [
-    {"path": "../hivelib"}
+    {"path": "../hivelib"},
   ],
   "include": [
-    "src/**/*.ts",
-    "src/**/*.js"
+    "./src/**/*.ts",
   ],
   "exclude": [
     "build/**",
-    "dist/**"
-  ]
+    "node_modules",
+    "dist/**",
+  ],
 }

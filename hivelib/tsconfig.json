@@ -1,45 +1,48 @@
 {
   // https://blog.logrocket.com/make-sharing-typescript-code-types-quick-easy/
   // typescript should generate JS files that support nodejs type loading
-//  "extends": "@tsconfig/node20/tsconfig.json",
+  // however, intellij doesn't seem to understand this.
+  "extends": "@tsconfig/node20/tsconfig.json",
 //  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "allowJs": true,
+//    "allowJs": true,  // conflicts with declaration flag?
     "baseUrl": ".",
-//    "checkJs": false,
-//    "emitDecoratorMetadata": false,
-    "esModuleInterop": true,
-    //    "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true,
-//    "isolatedModules": true,
-    // Avoid runtime imports that are unnecessary
-    "inlineSourceMap": true,
-    "incremental": true,
-    "lib": ["dom","es6"],
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "outDir": "./build",
-    // paths resolves relative to baseURL
+    "checkJs": false,
+   "composite": true, // false when  disabling incremental
+    "declaration": true,
+    "declarationMap": true,
+    "emitDecoratorMetadata": false,
+    "inlineSourceMap": false,
+    "incremental": true,     // remove tsconfig.tsbuildinfo to rebuild
+    "lib": ["dom","esnext"],
+//    "module": "commonjs",
+//   "moduleResolution": "node",
+    "noEmitOnError": false,
+    "noErrorTruncation": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "outDir": "build",
+    // paths resolves relative to baseUrl; MUST RUN tsc-alias after build!
     "paths": {
       "@hivelib/*": ["src/*"],
       "@keys/*": ["src/keys/*"]
     },
-//    "skipLibCheck": true,
-//    "sourceMap": true,
-    "rootDir": ".",
-    "strict": true,
-    "target": "es6",
+    "preserveSymlinks": true,
+    "pretty": true,
+   
+    "resolveJsonModule": true,
+    "rootDir": "./src/",
+    "sourceMap": true,
+    "target": "esnext"
   },
-//  "references": [
-//    {"path": "../hivelib"}
-//  ],
   "include": [
-    "src/**/*.ts",
+    "./src/**/*.ts",
+    "./src/**/*.js"
   ],
   "exclude": [
-    "./build/**",
+    "build/**",
     "node_modules",
-    "./dist/**",
+    "dist/**",
   ],
 //  "references": [{
 //    "path": "../hivelib"}]

@@ -1,4 +1,4 @@
-import {ISubscription} from "@hivelib/hubclient/transports/IHubTransport.js";
+import {ISubscription} from "@hivelib/hubclient/transports/IHubTransport";
 import {IPublishPacket} from "mqtt";
 
 export class Subscription implements ISubscription {

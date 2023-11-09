@@ -1,11 +1,11 @@
 
 // MqttTransport
-import {IHubTransport, ISubscription} from "../IHubTransport.js";
+import {IHubTransport, ISubscription} from "../IHubTransport";
 import * as mqtt from 'mqtt';
 import * as os from "os";
-import {IHiveKeys} from "@hivelib/keys/IHiveKeys.js";
-import {ECDSAKeys} from "@keys/ECDSAKeys.js";
-import {Subscription} from "@hivelib/hubclient/transports/mqtttransport/Subscription.js";
+import {IHiveKey} from "@keys/IHiveKey";
+import {ECDSAKey} from "@keys/ECDSAKey";
+import {Subscription} from "@hivelib/hubclient/transports/mqtttransport/Subscription";
 
 
 export class MqttTransport implements IHubTransport{
@@ -15,7 +15,7 @@ export class MqttTransport implements IHubTransport{
     caCertPem:string
     instanceID:string = ""
     inboxTopic:string=""
-    myKeys:IHiveKeys
+    // myKeys:IHiveKey
     // https://github.com/mqttjs/MQTT.js/
     mcl: mqtt.MqttClient|null=null
 
@@ -30,7 +30,6 @@ export class MqttTransport implements IHubTransport{
         this.fullURL=fullURL
         this.clientID=clientID
         this.caCertPem=caCertPem
-        this.myKeys = new ECDSAKeys()
         this.requestHandlers = {}
         this.subscriptions = new Array<Subscription>()
     }
@@ -41,47 +40,68 @@ export class MqttTransport implements IHubTransport{
 
     public async connectWithPassword(password: string): Promise<void> {
         // let urlParts = new URL(this.fullURL)
-        let timestamp = Date.now().toString() // msec since epoch
-        let rn = Math.random().toString(16).substring(2,8)
-        this.instanceID = this.clientID + "-"+os.hostname+"-"+timestamp+"-"+rn
-        // see https://github.com/mqttjs/MQTT.js/ for options
-        let opts:mqtt.IClientOptions = {
-            password:password,
-            ca: this.caCertPem,
-            clientId: this.instanceID,
-            protocolVersion: 5, // MQTT 5 is required for rpc
-            username: this.clientID,
-            properties: {
-                userProperties: {
-                    "clientID": this.clientID
-                }
-            }
-            // host: urlParts.host,
-            // port: parseInt(urlParts.port),
-            // path: urlParts.pathname
-        }
-        this.mcl = mqtt.connect(this.fullURL,opts)
-        this.mcl.on("message", this.onMessage)
-        this.mcl.on("error", (err)=>{
-            console.error("error: ",err)
-        })
+        let p = new Promise<void>((resolve,reject)=> {
 
-        // subscribe to inbox
-        this.inboxTopic = "_INBOX/"+this.instanceID
-        this.mcl.subscribe(this.inboxTopic)
-        return
+            console.log("connectWithPassword; url:", this.fullURL, "; clientID:", this.clientID)
+
+            let timestamp = Date.now().toString() // msec since epoch
+            let rn = Math.random().toString(16).substring(2, 8)
+            this.instanceID = this.clientID + "-" + os.hostname + "-" + timestamp + "-" + rn
+            // see https://github.com/mqttjs/MQTT.js/ for options
+            let opts: mqtt.IClientOptions = {
+                password: password,
+                ca: this.caCertPem,
+                clientId: this.instanceID,
+                protocolVersion: 5, // MQTT 5 is required for rpc
+                username: this.clientID,
+                rejectUnauthorized: (this.caCertPem != ""),
+                properties: {
+                    userProperties: {
+                        "clientID": this.clientID
+                    }
+                }
+                // host: urlParts.host,
+                // port: parseInt(urlParts.port),
+                // path: urlParts.pathname
+            }
+
+            this.mcl = mqtt.connect(this.fullURL, opts)
+
+            this.mcl.on("message", this.onMessage)
+            this.mcl.on("connect", () => {
+
+                console.log("on connected")
+                // subscribe to inbox
+                this.inboxTopic = "_INBOX/" + this.instanceID
+                if (this.mcl) {
+                    let inboxSub = this.mcl.subscribe(this.inboxTopic)
+                    console.log("subscribed to ",this.inboxTopic)
+                    // FIXME: store
+                }
+                resolve()
+            })
+            this.mcl.on("disconnect", () => {
+                console.log("on disconnected")
+            })
+
+            this.mcl.on("error", (err) => {
+                console.error("on error: ", err)
+                reject(err)
+            })
+
+        })
+        return p
     }
 
-    public connectWithToken(serializedKP: string, token: string): Promise<void> {
+    public async connectWithToken(key: IHiveKey, token: string): Promise<void> {
         // TODO: encrypt token with server public key so a MIM won't be able to get the token
         return this.connectWithPassword(token)
     }
 
-    public createKeyPair(): {privPEM:string, pubPEM:string} {
-        this.myKeys.createKey()
-        let privPEM = this.myKeys.exportPrivateToPEM()
-        let pubPEM = this.myKeys.exportPrivateToPEM()
-        return {privPEM,pubPEM}
+    // mqtt uses ECDSA keys
+    public createKeyPair(): IHiveKey {
+        let kp = new ECDSAKey().initialize()
+        return kp
     }
 
     public disconnect():void {
@@ -100,19 +120,6 @@ export class MqttTransport implements IHubTransport{
                 // fixme: split requests from events???
                 let reply = s.handler(packet)
             }
-        }
-    }
-
-    public set onConnect(handler: ()=>void) {
-        if (this.mcl) {
-            this.mcl.on("connect", handler)
-            this.mcl.on("reconnect", handler)
-        }
-    }
-
-    public set onDisconnect(handler: ()=>void) {
-        if (this.mcl) {
-            this.mcl.on("disconnect", handler)
         }
     }
 
@@ -151,39 +158,58 @@ export class MqttTransport implements IHubTransport{
         return p
     }
 
+    // set a handler
+    public setOnConnect(handler: ()=>void): void {
+        if (this.mcl) {
+            this.mcl.on("connect", handler)
+            this.mcl.on("reconnect", handler)
+        }
+    }
+
+    public setOnDisconnect(handler: ()=>void): void {
+        if (this.mcl) {
+            this.mcl.on("disconnect", handler)
+        }
+    }
+
     // subscribe to a topic
     public sub(topic: string,
                handler: (topic:string,data:string)=>void):ISubscription {
         // mqtt.js doesn't support subscription specific callbacks so we need to
         // build a subscription list and handle it ourselves.
-
-        let replyHandler = (request: mqtt.IPublishPacket):void=> {
-            handler(request.topic, request.payload.toString())
-        }
-        let subscription = new Subscription(
-           topic, replyHandler, this.unsubscribe);
-
-        this.subscriptions.push(subscription)
-
-        let opts :mqtt.IClientSubscribeOptions = {
-            qos:1,
-            properties:{
-                subscriptionIdentifier: subscription.subscriptionID,
-            },
-        }
-        if (!this.mcl) {
-            throw("no server connection");
-        }
-        this.mcl.subscribe(topic, opts, (err, granted) => {
-            // remove registration if subscription fails
-            if (err) {
-                console.error("sub failed: " + err);
-                this.subscriptions.pop();
-            } else {
-                // all good
+        try {
+            let replyHandler = (request: mqtt.IPublishPacket): void => {
+                handler(request.topic, request.payload.toString())
             }
-        })
-        return subscription;
+            let subscription = new Subscription(
+                topic, replyHandler, this.unsubscribe);
+
+            this.subscriptions.push(subscription)
+
+            let opts: mqtt.IClientSubscribeOptions = {
+                qos: 1,
+                properties: {
+                    subscriptionIdentifier: subscription.subscriptionID,
+                },
+            }
+            if (!this.mcl) {
+                throw ("no server connection");
+            }
+            this.mcl.subscribe(topic, opts, (err, granted) => {
+                // remove registration if subscription fails
+                if (err) {
+                    console.error("sub failed: " + err);
+                    this.subscriptions.pop();
+                } else {
+                    console.log("sub granted: " + granted);
+                    // all good
+                }
+            })
+            return subscription;
+        } catch (e) {
+           console.error("sub error:",e)
+        }
+        throw ("failed with error");
     }
 
     // subRequest subscribes to a request and sends the reply to the reply-to address

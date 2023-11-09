@@ -1,6 +1,6 @@
 import {getEnumMemberName, NodeStatus, ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType,} from "zwave-js";
 import {InterviewStage, SecurityClass} from '@zwave-js/core';
-import {PropTypes} from "@lib/vocab/vocabulary.js";
+import {PropTypes} from "@hivelib/vocab/vocabulary.js";
 import {getPropID} from "./getPropID.js";
 
 
