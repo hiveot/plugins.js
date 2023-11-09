@@ -1,6 +1,5 @@
 {
   // typescript should generate JS files that support nodejs type loading
- "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
     "allowJs": true,
     "baseUrl": ".",
@@ -14,14 +13,14 @@
 
     "emitDecoratorMetadata": false,
     "forceConsistentCasingInFileNames": true,
-    "importHelpers": true,
-    "incremental": true,
+    // "importHelpers": true,
+    // "incremental": true,
     // "inlineSourceMap": true,
 //    "isolatedModules": true,
     // Avoid runtime imports that are unnecessary
-      "lib": ["dom","esnext"],
-    "module": "node16",
-    "moduleResolution": "NodeNext",
+      "lib": ["esnext","DOM"],
+    "module": "commonjs",
+    // "moduleResolution": "NodeNext",
     "noEmit": false,
     "outDir": "./build",
     // paths avoids the need for relative paths
@@ -34,7 +33,8 @@
     /* Necessary to support yarn portals with the node-modules linker, used by yarn link (berry) */
     "pretty": true,
 
-    "rootDir": "src",
+    "rootDir": "./src",
+    "skipLibCheck": true,
     "sourceMap": true,
     "target": "esnext",
     "types": [
@@ -46,7 +46,7 @@
     {"path": "../hivelib"},
   ],
   "include": [
-    "./src/**/*.ts",
+    "src/**/*.ts",
   ],
   "exclude": [
     "build/**",

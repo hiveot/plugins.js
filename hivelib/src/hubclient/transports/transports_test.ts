@@ -23,9 +23,9 @@ async function test1() {
     console.log("publishing hello world")
     await  tp.pub("event/test/testthing/event1/test","hello world")
 
-    // tp.sub("event/test/#",(ev)=>{
-    //     console.log("rx ev",ev)
-    // })
+    let subscr = tp.sub("event/test/+/+/+/#",(ev)=>{
+         console.log("rx ev",ev)
+    })
 
     console.log("publishing hello world2")
     await  tp.pub("event/test/testthing/event2/test","hello world2")
@@ -33,6 +33,9 @@ async function test1() {
     await waitForSignal()
 
     await new Promise(resolve => setTimeout(resolve, 5000));
+    if (subscr) {
+        subscr.unsubscribe()
+    }
 
     console.log("Disconnecting...")
     tp.disconnect()

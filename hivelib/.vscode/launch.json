@@ -5,16 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            // run typescript using tsx (https://stackoverflow.com/questions/76042042/how-can-i-create-a-node-test-launch-configuration)
+            // this works with the debugger, breakpoints, source maps enabled. :)
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "test",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/src/hubclient/transports/transports_test.ts",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js"
-            ]
+            "runtimeExecutable": "node_modules/.bin/tsx",
+            "runtimeArgs": [ "${workspaceFolder}/src/hubclient/transports/transports_test.ts"],
+            "console": "integratedTerminal",   // fixes EACCESS error writing to console
+            "cwd": "${workspaceFolder}",
         }
     ]
 }

@@ -8,7 +8,7 @@ let tp: MqttTransport
 
 async function test1() {
 
-    process.on("uncaughtException",(err:any)=>{
+    process.on("uncaughtException",(err:Error)=>{
         console.error("uncaughtException",err)
     })
 

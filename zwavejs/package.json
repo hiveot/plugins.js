@@ -6,7 +6,7 @@
   "main": "src/main.ts",
   "type": "commonjs",
   "scripts": {
-    "build": "tsc --build && tsc-alias",
+    "build": "tsc && tsc-alias",
     "test": "tsx src/tests/hubconnect_test.ts",
     "dist": "tsc && pkg --compress GZip package.json",
     "dev": "tsc && ZWAVEJS_EXTERNAL_CONFIG=dist/cache node build/main.js --home ~/bin/hiveot",
@@ -35,8 +35,10 @@
   "devDependencies": {
     "@tsconfig/node20": "^20.1.2",
     "@types/md5": "^2.3.5",
+    "@types/node": "^20.9.0",
     "@types/ws": "^8.5.9",
     "pkg": "^5.8.1",
+    "tsc": "^2.0.4",
     "tsc-alias": "^1.8.8",
     "tsx": "^3.14.0",
     "typescript": "^5.2.2"
