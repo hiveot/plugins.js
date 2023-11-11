@@ -5,7 +5,7 @@ import * as mqtt from 'mqtt';
 import * as os from "os";
 import { IHiveKey } from "@keys/IHiveKey";
 import { ECDSAKey } from "@keys/ECDSAKey";
-import { Subscription } from "@hivelib/hubclient/transports/mqtttransport/Subscription";
+import { IPublishPacket } from 'mqtt';
 
 
 export class MqttTransport implements IHubTransport {
@@ -15,23 +15,29 @@ export class MqttTransport implements IHubTransport {
     caCertPem: string
     instanceID: string = ""
     inboxTopic: string = ""
+
+    // application handler of connection status change
+    connectHandler: null | ((connected: boolean, err: Error) => void) = null;
+    // application handler of incoming messages
+    messageHandler: null | ((topic: string, payload: string) => void) = null;
+    // application handler of incoming request-response messages
+    requestHandler: null | ((topic: string, payload: string) => string) = null;
+
     // myKeys:IHiveKey
     // https://github.com/mqttjs/MQTT.js/
     mcl: mqtt.MqttClient | null = null
 
     // map of correlationID to handler receiving a reply or timeout error
     // TODO: expire correlation IDs after X seconds
-    requestHandlers: { [index: string]: (reply: string) => void };
+    replyHandlers: { [index: string]: (corrID: string, reply: string) => void };
 
-    // map of subscription ID to subscriptions
-    subscriptions: Array<Subscription>;
+    constructor(
+        fullURL: string, clientID: string, caCertPem: string) {
 
-    constructor(fullURL: string, clientID: string, caCertPem: string) {
         this.fullURL = fullURL
         this.clientID = clientID
         this.caCertPem = caCertPem
-        this.requestHandlers = {}
-        this.subscriptions = new Array<Subscription>()
+        this.replyHandlers = {}
     }
 
     public addressTokens(): { sep: string, wc: string, rem: string } {
@@ -61,34 +67,41 @@ export class MqttTransport implements IHubTransport {
                         "clientID": this.clientID
                     }
                 }
-                // host: urlParts.host,
-                // port: parseInt(urlParts.port),
-                // path: urlParts.pathname
+
             }
 
             this.mcl = mqtt.connect(this.fullURL, opts)
 
-            this.mcl.on("message", this.onMessage)
             this.mcl.on("connect", (packet: any) => {
-
                 console.log("MQTT client connected to:", this.fullURL)
-                // subscribe to inbox
+                // subscribe to inbox; server only allows inbox subscription with the clientID
+                // to prevent subscribing to other client's inboxes.
                 this.inboxTopic = "_INBOX/" + this.instanceID
                 if (this.mcl) {
                     let inboxSub = this.mcl.subscribe(this.inboxTopic)
                     console.log("subscribed to ", this.inboxTopic)
-                    // FIXME: store
                 }
                 resolve()
             })
             this.mcl.on("disconnect", (args: any) => {
-                console.log("MQTT server disconnected:", args)
+                console.log("MQTT server disconnected:")
             })
-
             this.mcl.on("error", (err: Error) => {
-                console.error("MQTT error: ", err)
+                console.error("MQTT error: ", err.message)
                 reject(err)
             })
+            this.mcl.on("message",
+                (topic: string, payload: Buffer, packet: IPublishPacket) => {
+                    // console.log("on message. topic:", topic)
+                    this.onRawMessage(topic, payload, packet)
+                })
+            this.mcl.on("offline", () => {
+                console.error("Connection lost")
+            })
+            // this.mcl.on("packetreceive", (packet: mqtt.Packet) => {
+            //     console.error("packetReceive: cmd:", packet.cmd)
+            // })
+
 
         })
         return p
@@ -99,7 +112,7 @@ export class MqttTransport implements IHubTransport {
         return this.connectWithPassword(token)
     }
 
-    // mqtt uses ECDSA keys
+    // this mqtt transport uses ECDSA keys
     public createKeyPair(): IHiveKey {
         let kp = new ECDSAKey().initialize()
         return kp
@@ -112,15 +125,45 @@ export class MqttTransport implements IHubTransport {
         }
     }
 
-    // handle incoming mqtt message
-    onMessage(topic: string, payload: Buffer, packet: mqtt.IPublishPacket): void {
-        // lookup the topic subscription
-        for (let i = 0; i < this.subscriptions.length; i++) {
-            let s = this.subscriptions[i]
-            if ((s.topic == topic) && !(!s.handler)) {
-                // fixme: split requests from events???
-                let reply = s.handler(packet)
+    // handle incoming mqtt message.
+    // This determines the type of message and passes it on to the corresponding handlers.
+    //  * INBOX message: The handler registered to the correlationID will be invoked.
+    //  * Message with replyTo address: the RequestHandler will be invoked and its result is sent to the replyTo address.
+    //  * Message with no replyTo address: The MessageHandler will be invoked.
+    onRawMessage(topic: string, payload: Buffer, packet: mqtt.IPublishPacket): void {
+        // intercept INBOX replies
+        let payloadStr = payload.toString()
+        let cordata = packet.properties?.correlationData
+        let corid = cordata?.toString() || ""
+        try {
+            if (corid != "") {
+                // this is a response to a request.
+                // find the reply handler for the correlation ID.
+                let handler = this.replyHandlers[corid]
+                handler(corid, payloadStr)
+                return
+            } else if (packet.properties?.responseTopic) {
+                let err: Error | null = null
+                let reply: string = ""
+                // this is a request that asks for a reponse
+                if (this.requestHandler) {
+                    try {
+                        reply = this.requestHandler(topic, payloadStr)
+                    } catch (e: any) {
+                        err = Error("ERROR: exception:", e)
+                    }
+                } else {
+                    err = Error("No handler for topic:" + topic)
+                }
+                this.pubReply(reply, err, packet)
+            } else {
+                // this is a message without response
+                if (this.messageHandler) {
+                    this.messageHandler(topic, payloadStr)
+                }
             }
+        } catch (e) {
+            console.error("exception handling message. topic:", topic, ", err:", e)
         }
     }
 
@@ -130,32 +173,67 @@ export class MqttTransport implements IHubTransport {
         }
         return
     }
+    // send a reply to a request
+    public async pubReply(payload: string, err: Error | null, request: IPublishPacket) {
+        if ((!this.mcl) || (!request.properties?.correlationData) || !request.properties.responseTopic) {
+            let err = Error("pubReply without a proper request packet")
+            console.error(err)
+            throw err
+        }
+        let corid = request.properties?.correlationData
+        let opts: mqtt.IClientPublishOptions = {
+            properties: {
+                responseTopic: request.properties?.responseTopic,
+                correlationData: corid,
+            }
+        }
+        // typescript doesn't recognize that opts.properties is already set
+        if (err && (!!opts.properties)) {
+            let userProp = { error: err.message };
+            opts.properties.userProperties = userProp;
+        }
+        let replyTo = request.properties?.responseTopic
+        this.mcl.publish(replyTo, payload, opts, (err) => {
+            if (err) {
+                // failed to send a reply
+                console.error("failed to send reply. err=", err)
+                throw (err)
+            } else {
+                console.log('Request sent with correlation ID:', corid)
+            }
+        })
+        return
+    }
+
     public async pubRequest(address: string, payload: string): Promise<string> {
 
         let p = new Promise<string>((resolve, reject) => {
             let rn = Math.random().toString(16).substring(2, 8)
-            let cID = Date.now().toString(16) + "." + rn
+            let corid = Date.now().toString(16) + "." + rn
 
             let opts = {
                 properties: {
                     responseTopic: this.inboxTopic,
-                    correlationData: Buffer.from('correlation data')
+                    correlationData: Buffer.from(corid)
                 }
             }
-            let messageId = this.mcl ? this.mcl.publish(
+            this.mcl ? this.mcl.publish(
                 address, payload, opts, (err) => {
                     if (err) {
                         console.log(err)
                         reject()
                         throw (err)
                     } else {
-                        console.log('Request Message Sent: ', messageId)
+                        console.log('Request sent with correlation ID:', corid)
                     }
                 }) : "";
-            // FIXME: should requestHandlers invoke the resolve method?
-            // FIXME: how is reject passed?
-            // the promise resolves when a reply is received or rejects on timeout
-            this.requestHandlers[cID] = resolve
+            // If the onMessage handler receives a message with this correlation ID
+            // then it invokes the resolve() function with the reply payload.
+            let h = function (corrID: string, payload: string): void {
+                console.log("invoking reply handler")
+                resolve(payload)
+            }
+            this.replyHandlers[corid] = h.bind(this)
         })
         return p
     }
@@ -168,32 +246,41 @@ export class MqttTransport implements IHubTransport {
         }
     }
 
-    public setOnDisconnect(handler: () => void): void {
+    public setOnDisconnect(handler: (err: Error | null) => void): void {
         if (this.mcl) {
-            this.mcl.on("disconnect", handler)
+            this.mcl.on("disconnect", (packet: mqtt.IDisconnectPacket) => {
+                let reason: string = packet.reasonCode?.toString() || ""
+                if (packet.reasonCode != 0) {
+                    let err = new Error(reason + ":" + packet.properties?.reasonString)
+                    handler(err)
+                } else {
+                    handler(null)
+                }
+
+            })
         }
     }
 
+    // Set the callback of connect/disconnect updates
+    public set onConnect(handler: (connected: boolean, err: Error | null) => void) {
+        this.connectHandler = handler
+    }
+
+    // Set the handler of incoming messages
+    public set onMessage(handler: (topic: string, payload: string) => void) {
+        this.messageHandler = handler
+    }
+
+    // Set the handler of incoming requests-response calls.
+    // The result of the handler is sent as a reply.
+    // Intended for handling actions and RPC requests.
+    public set onRequest(handler: (topic: string, payload: string) => string) {
+        this.requestHandler = handler
+    }
+
     // subscribe to a topic
-    public sub(topic: string,
-        handler: (topic: string, data: string) => void): ISubscription {
-        // mqtt.js doesn't support subscription specific callbacks so we need to
-        // build a subscription list and handle it ourselves.
-        try {
-            let replyHandler = (request: mqtt.IPublishPacket): void => {
-                handler(request.topic, request.payload.toString())
-            }
-            let subscription = new Subscription(
-                topic, replyHandler, this.unsubscribe.bind(this));
-
-            this.subscriptions.push(subscription)
-
-            let opts: mqtt.IClientSubscribeOptions = {
-                qos: 1,
-                properties: {
-                    subscriptionIdentifier: subscription.subscriptionID,
-                },
-            }
+    public async subscribe(topic: string): Promise<void> {
+        let p = new Promise<void>((resolve, reject) => {
             if (!this.mcl) {
                 throw ("no server connection");
             }
@@ -202,93 +289,20 @@ export class MqttTransport implements IHubTransport {
                 // remove registration if subscription fails
                 if (err) {
                     console.error("sub failed: " + err);
-                    this.subscriptions.pop();
-                } else {
+                    reject(err)
+                } else {       // all good
                     console.log("sub granted: " + granted);
-                    // all good
+                    resolve()
                 }
             })
-            return subscription;
-        } catch (e) {
-            console.error("sub error:", e)
-        }
-        throw ("failed with error");
+        })
+        return p;
+
     }
 
-    // subRequest subscribes to a request and sends the reply to the reply-to address
-    // in the request. This requires MQTT 5.
-    public subRequest(address: string,
-        requestHandler: (addr: string, payload: string) => string): ISubscription {
-
-        let opts: mqtt.IClientSubscribeOptions = {
-            qos: 1,
-        }
-        if (!this.mcl) {
-            throw ("no server connection");
-        }
-        this.mcl.subscribe(address, opts)
-
-        // handling this request differs in that the result is sent back to
-        // the sender on its reply-to inbox address
-
-        // the reply handler invokes the request handler and sends
-        // response as a reply.
-        let replyHandler = (request: mqtt.IPublishPacket): void => {
-            let replyData = ""
-            let replyErr: Error | null = null
-            try {
-                // first invoke the handler and get a reply
-                // if the handler blows up then send an error reply
-                replyData = requestHandler(request.topic, request.payload.toString())
-            } catch (err: any) {
-                console.error("subRequest exception: " + err)
-                replyErr = err
-            }
-
-            // enforce user properties
-            let userProp = request.properties?.userProperties || {}
-            let replyOpts: mqtt.IClientPublishOptions = {
-                qos: 1,
-                retain: false,
-                properties: {
-                    // if correlationData is missing then bye bye
-                    correlationData: request.properties?.correlationData,
-                    userProperties: userProp,
-                    contentType: request.properties?.contentType,
-                    messageExpiryInterval: request.properties?.messageExpiryInterval,
-                }
-            }
-            if (replyErr) {
-                userProp["error"] = replyErr.toString()
-            }
-            // publish the reply to the response topic
-            let responseTopic = request.properties?.responseTopic
-            let correlationID = request.properties?.correlationData
-            // if correlationData or reply-to address are missing then there is no reply
-            if (!!correlationID && !!responseTopic && this.mcl) {
-                this.mcl.publish(responseTopic, replyData, replyOpts)
-            }
-        };
-        let subscription = new Subscription(address, replyHandler, this.unsubscribe.bind(this))
-
-        this.subscriptions.push(subscription)
-
-
-        return subscription
-    }
-
-    unsubscribe(sub: Subscription) {
-        // not expecting many subscriptions here so this is fast enough
-        for (let i = 0; i < this.subscriptions.length; i++) {
-            let s = this.subscriptions[i];
-
-            if (s.topic == sub.topic) {
-                if (this.mcl) {
-                    this.mcl.unsubscribe(s.topic);
-                }
-                delete this.subscriptions[i];
-                break
-            }
+    unsubscribe(address: string) {
+        if (this.mcl) {
+            this.mcl.unsubscribe(address);
         }
     }
 }
