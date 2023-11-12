@@ -1,9 +1,6 @@
 // ISubscription interface to underlying subscription mechanism
 import { IHiveKey } from "@keys/IHiveKey";
 
-export interface ISubscription {
-    unsubscribe(): void;
-}
 
 
 // IHubTransport defines the interface of the message bus transport used by
@@ -33,10 +30,10 @@ export interface IHubTransport {
     // Disconnect from the message bus.
     disconnect(): void;
 
-    // Pub for publications on any address and returns immediately.
+    // PubEvent publishes event type messages and returns immediately. 
     // @param address to publish on
     // @param payload with serialized message to publish
-    pub(address: string, payload: string): Promise<void>;
+    pubEvent(address: string, payload: string): Promise<void>;
 
     // PubRequest publishes an RPC request and waits for a response.
     // @param address to publish on
@@ -62,10 +59,16 @@ export interface IHubTransport {
 
 
     // Set the handler for incoming event-type messages.
+    // Event type messages are those that do not contain a reply-to address and correlation data.
     //
-    set onMessage(handler: (addr: string, payload: string) => void)
+    set onEvent(handler: (addr: string, payload: string) => void)
 
     // Set the handler for incoming request-response message.
+    // The handler will be invoked if a message is received that contains a reply-to
+    // address and a correlation ID. The result of the handler will be send back to
+    // the sender. If an exception is thrown then an error will be returned to the sender.
+    //
+    // Support for request-response messages requires MQTT v5.
     //
     // The result of the handler will be sent as a reply.
     // This requires MQTT v5.

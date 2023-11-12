@@ -18,7 +18,7 @@ async function test1() {
     //running instance
     tp = new MqttTransport("mqtts://127.0.0.1:8883", testClient, caCertPEM)
 
-    tp.onMessage = (topic: string, payload: string) => {
+    tp.onEvent = (topic: string, payload: string) => {
         console.log("onMessage:", topic)
         lastMsg = payload
     }
@@ -32,7 +32,7 @@ async function test1() {
     await tp.subscribe("event/+/+/#")
 
     console.log("publishing hello world")
-    await tp.pub("event/test/testthing/event1/test", "hello world")
+    await tp.pubEvent("event/test/testthing/event1/test", "hello world")
 
     await waitForSignal()
 

@@ -1,6 +1,6 @@
 
 // MqttTransport
-import { IHubTransport, ISubscription } from "../IHubTransport";
+import { IHubTransport } from "../IHubTransport";
 import * as mqtt from 'mqtt';
 import * as os from "os";
 import { IHiveKey } from "@keys/IHiveKey";
@@ -15,9 +15,10 @@ export class MqttTransport implements IHubTransport {
     caCertPem: string
     instanceID: string = ""
     inboxTopic: string = ""
+    timeoutMSec: number = 30000 // request timeout in millisec
 
     // application handler of connection status change
-    connectHandler: null | ((connected: boolean, err: Error) => void) = null;
+    connectHandler: null | ((connected: boolean, err: Error | null) => void) = null;
     // application handler of incoming messages
     messageHandler: null | ((topic: string, payload: string) => void) = null;
     // application handler of incoming request-response messages
@@ -28,7 +29,6 @@ export class MqttTransport implements IHubTransport {
     mcl: mqtt.MqttClient | null = null
 
     // map of correlationID to handler receiving a reply or timeout error
-    // TODO: expire correlation IDs after X seconds
     replyHandlers: { [index: string]: (corrID: string, reply: string) => void };
 
     constructor(
@@ -82,10 +82,22 @@ export class MqttTransport implements IHubTransport {
                     console.log("subscribed to ", this.inboxTopic)
                 }
                 resolve()
+                if (this.connectHandler) {
+                    this.connectHandler(true, null)
+                }
             })
-            this.mcl.on("disconnect", (args: any) => {
+            this.mcl.on("disconnect", (packet: mqtt.IDisconnectPacket) => {
                 console.log("MQTT server disconnected:")
+                let reason: string = packet.reasonCode?.toString() || ""
+                let err: Error | null = null
+                if (packet.reasonCode != 0) {
+                    err = new Error(reason + ":" + packet.properties?.reasonString)
+                }
+                if (this.connectHandler) {
+                    this.connectHandler(false, err)
+                }
             })
+
             this.mcl.on("error", (err: Error) => {
                 console.error("MQTT error: ", err.message)
                 reject(err)
@@ -134,49 +146,60 @@ export class MqttTransport implements IHubTransport {
         // intercept INBOX replies
         let payloadStr = payload.toString()
         let cordata = packet.properties?.correlationData
+        // TODO: an inbox address could include the correlation ID. Is this worth it for mqtt-v3?
         let corid = cordata?.toString() || ""
         try {
-            if (corid != "") {
-                // this is a response to a request.
-                // find the reply handler for the correlation ID.
-                let handler = this.replyHandlers[corid]
-                handler(corid, payloadStr)
-                return
+            if (topic.startsWith(this.inboxTopic)) {
+                // this is a response
+                if (corid == "") {
+                    console.error("onRawMessage: ignored response without correlation ID.")
+                } else {
+                    // find the handler for the correlation ID.
+                    let handler = this.replyHandlers[corid]
+                    handler(corid, payloadStr)
+                    return
+                }
             } else if (packet.properties?.responseTopic) {
                 let err: Error | null = null
                 let reply: string = ""
-                // this is a request that asks for a reponse
-                if (this.requestHandler) {
+                // this is a request message that asks for a response
+                if (!corid) {
+                    err = Error("onRawMessage: request without correlationID. Topic:" + topic)
+                } else if (!this.requestHandler) {
+                    err = Error("onRawMessage: No handler for topic:" + topic)
+                } else {
+                    // this is a request that asks for a reponse
                     try {
                         reply = this.requestHandler(topic, payloadStr)
                     } catch (e: any) {
-                        err = Error("ERROR: exception:", e)
+                        // catch this error so a reply can be sent
+                        err = Error("onRawMessage ERROR: exception:", e)
                     }
-                } else {
-                    err = Error("No handler for topic:" + topic)
                 }
                 this.pubReply(reply, err, packet)
+
             } else {
-                // this is a message without response
+                // this is an event type message
                 if (this.messageHandler) {
                     this.messageHandler(topic, payloadStr)
                 }
             }
         } catch (e) {
-            console.error("exception handling message. topic:", topic, ", err:", e)
+            console.error("onRawMessage: Exception handling message. topic:", topic, ", err:", e)
         }
     }
 
-    public async pub(address: string, payload: string): Promise<void> {
+    // send an event and return immediately
+    public async pubEvent(address: string, payload: string): Promise<void> {
         if (this.mcl) {
             this.mcl.publish(address, payload)
         }
         return
     }
     // send a reply to a request
-    public async pubReply(payload: string, err: Error | null, request: IPublishPacket) {
+    async pubReply(payload: string, err: Error | null, request: IPublishPacket) {
         if ((!this.mcl) || (!request.properties?.correlationData) || !request.properties.responseTopic) {
-            let err = Error("pubReply without a proper request packet")
+            let err = Error("pubReply: missing replyTo or correlationData")
             console.error(err)
             throw err
         }
@@ -196,20 +219,23 @@ export class MqttTransport implements IHubTransport {
         this.mcl.publish(replyTo, payload, opts, (err) => {
             if (err) {
                 // failed to send a reply
-                console.error("failed to send reply. err=", err)
+                console.error("pubReply: failed to send reply. err=", err)
                 throw (err)
             } else {
-                console.log('Request sent with correlation ID:', corid)
+                console.log('pubReply: Request sent with correlation ID:', corid.toString())
             }
         })
         return
     }
 
+    // send an action or RPC request and wait for a reply
     public async pubRequest(address: string, payload: string): Promise<string> {
 
         let p = new Promise<string>((resolve, reject) => {
             let rn = Math.random().toString(16).substring(2, 8)
-            let corid = Date.now().toString(16) + "." + rn
+            // let corid = Date.now().toString(16) + "." + rn
+            let rightnow = new Date()
+            let corid = rightnow.toISOString() + "." + rn
 
             let opts = {
                 properties: {
@@ -224,41 +250,22 @@ export class MqttTransport implements IHubTransport {
                         reject()
                         throw (err)
                     } else {
-                        console.log('Request sent with correlation ID:', corid)
+                        console.log('pubRequest: Request sent to ' + address + 'with correlationID:', corid)
                     }
                 }) : "";
-            // If the onMessage handler receives a message with this correlation ID
-            // then it invokes the resolve() function with the reply payload.
-            let h = function (corrID: string, payload: string): void {
-                console.log("invoking reply handler")
-                resolve(payload)
-            }
-            this.replyHandlers[corid] = h.bind(this)
+            // if the timer isn't cancelled in time, it will reject the request
+            // this should work with both node and browser
+            // FIXME remove reply handler after use
+            let timoutID = setTimeout(() => reject("timeout"), this.timeoutMSec)
+            this.replyHandlers[corid] =
+                function (corrID: string, payload: string): void {
+                    // received a reply, cancel the timer and resolve the request
+                    clearTimeout(timoutID)
+                    console.log("pubRequest: invoking reply handler")
+                    resolve(payload)
+                }
         })
         return p
-    }
-
-    // set a handler
-    public setOnConnect(handler: () => void): void {
-        if (this.mcl) {
-            this.mcl.on("connect", handler)
-            this.mcl.on("reconnect", handler)
-        }
-    }
-
-    public setOnDisconnect(handler: (err: Error | null) => void): void {
-        if (this.mcl) {
-            this.mcl.on("disconnect", (packet: mqtt.IDisconnectPacket) => {
-                let reason: string = packet.reasonCode?.toString() || ""
-                if (packet.reasonCode != 0) {
-                    let err = new Error(reason + ":" + packet.properties?.reasonString)
-                    handler(err)
-                } else {
-                    handler(null)
-                }
-
-            })
-        }
     }
 
     // Set the callback of connect/disconnect updates
@@ -267,7 +274,7 @@ export class MqttTransport implements IHubTransport {
     }
 
     // Set the handler of incoming messages
-    public set onMessage(handler: (topic: string, payload: string) => void) {
+    public set onEvent(handler: (topic: string, payload: string) => void) {
         this.messageHandler = handler
     }
 
@@ -282,16 +289,16 @@ export class MqttTransport implements IHubTransport {
     public async subscribe(topic: string): Promise<void> {
         let p = new Promise<void>((resolve, reject) => {
             if (!this.mcl) {
-                throw ("no server connection");
+                throw ("subscribe: no server connection");
             }
             // this.mcl.subscribe(topic, opts, (err, granted) => {
             this.mcl.subscribe(topic, (err, granted) => {
                 // remove registration if subscription fails
                 if (err) {
-                    console.error("sub failed: " + err);
+                    console.error("subscribe: failed: " + err);
                     reject(err)
                 } else {       // all good
-                    console.log("sub granted: " + granted);
+                    console.log("subscribe: topic:" + topic);
                     resolve()
                 }
             })
@@ -300,7 +307,7 @@ export class MqttTransport implements IHubTransport {
 
     }
 
-    unsubscribe(address: string) {
+    public unsubscribe(address: string) {
         if (this.mcl) {
             this.mcl.unsubscribe(address);
         }

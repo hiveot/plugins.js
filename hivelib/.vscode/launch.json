@@ -7,15 +7,45 @@
         {
             // run typescript using tsx (https://stackoverflow.com/questions/76042042/how-can-i-create-a-node-test-launch-configuration)
             // this works with the debugger, breakpoints, source maps enabled. :)
+            "name": "transports_test",
             "type": "node",
             "request": "launch",
-            "name": "test",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "runtimeExecutable": "node_modules/.bin/tsx",
-            "runtimeArgs": [ "${workspaceFolder}/src/hubclient/transports/transports_test.ts"],
-            "console": "integratedTerminal",   // fixes EACCESS error writing to console
+            "runtimeArgs": [
+                "${workspaceFolder}/src/hubclient/transports/transports.test.ts"
+            ],
+            "console": "integratedTerminal", // fixes EACCESS error writing to console
+            "cwd": "${workspaceFolder}",
+        },
+        {
+            "name": "hubclient_test",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "node_modules/.bin/tsx",
+            "runtimeArgs": [
+                "${workspaceFolder}/src/hubclient/hubclient.test.ts"
+            ],
+            "console": "integratedTerminal", // fixes EACCESS error writing to console
+            "cwd": "${workspaceFolder}",
+        },
+        {
+            "name": "clients_test",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "node_modules/.bin/tsx",
+            "runtimeArgs": [
+                "${workspaceFolder}/src/clients/stateclient.test.ts"
+            ],
+            "console": "integratedTerminal", // fixes EACCESS error writing to console
             "cwd": "${workspaceFolder}",
         }
     ]
