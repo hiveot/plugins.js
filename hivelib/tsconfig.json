@@ -34,7 +34,7 @@
     "preserveSymlinks": true,
     "pretty": true,
     "resolveJsonModule": true,
-    "rootDir": "./src/",
+    "rootDir": "./",
     "skipLibCheck": true,
     "sourceMap": true,
     "target": "esnext",

@@ -1,19 +1,16 @@
 # ZwaveJS binding for HiveOT
 
-This binding connects to a ZWave USB-Stick controller and publishes Wot TD documents and events to the HiveOT message
-bus.
+This binding connects to a ZWave USB-Stick controller and publishes Wot TD documents and events to the HiveOT message bus.
 
 ## Status
 
-This binding is alpha. It is functional but breaking changes can still happen.
+This binding is pre-alpha. It is converted to use with hiveot hub.
 
-Binding TODOs:
+TODOs:
 
-1. Try to reconnect when gateway connection drops
-1. Use a logging handler to choose level and write to file
+1. Connect to hiveot Hub
+1. Reconnect support
 1. Move lib to a typescript library folder reusable by other bindings
-1. Use tinygo to reduce the generated wasm file.
-   This is currently blocked as x/net package isn't supported by tinygo.
 
 ZWave handling TODOs:
 
@@ -27,7 +24,6 @@ ZWave handling TODOs:
 
 This needs:
 
-* golang v1.18+
 * yarn
 * nodejs v18+
 * typescript compiler v4.9+ (tsc, included in snap's node)
@@ -35,7 +31,7 @@ This needs:
 
 Simply run make dist and watch the magic unfold (...hopefully, this is a javascript build environment after all).
 
-The end result, if all goes according to plan, is a single binary: **dist/zwavebinding**
+The end result, if all goes according to plan, is a single binary: **dist/zwavejs**
 
 ## Installation
 

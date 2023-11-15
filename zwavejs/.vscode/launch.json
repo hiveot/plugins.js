@@ -21,6 +21,9 @@
                 "<node_internals>/**"
             ],
             "type": "node",
+            "presentation": {
+                "group": "tsx",
+            },
             "console": "integratedTerminal",
         },
         // test using tsc and tsc-alias running node using yarn (no tsx)
@@ -38,6 +41,9 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
+            "presentation": {
+                "group": "tsc",
+            },
             "console": "integratedTerminal",
         },
         // run it using yarn
@@ -49,7 +55,7 @@
                 "<node_internals>/**"
             ],
             "runtimeExecutable": "yarn",
-            "program": "devtsc",
+            "program": "dev",
             // "env": {
             // "DEBUG": "mqttjs*"
             // "DEBUG": "*"
@@ -58,7 +64,61 @@
             // "${workspaceFolder}/build/*.js",
             // "!**/node_modules/**"
             // ],
+            "presentation": {
+                "group": "tsc",
+            },
             "console": "integratedTerminal", // fixes EACCESS error writing to console
         },
+        {
+            "name": "build",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "yarn",
+            "args": "build",
+            "console": "integratedTerminal", // fixes EACCESS error writing to console
+            "presentation": {
+                "group": "tsc",
+                "reveal": "silent",
+            }
+        },
+        // run it using tsc and node
+        {
+            "name": "dev2",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "node",
+            "runtimeArgs": [
+                "--preserve-symlinks",
+            ],
+            "program": "build/src/main.js",
+            "args": [
+                "--home ~/bin/hiveot"
+            ],
+            // "env": {
+            // "DEBUG": "mqttjs*"
+            // "DEBUG": "*"
+            // },
+            // "outFiles": [
+            // "${workspaceFolder}/build/*.js",
+            // "!**/node_modules/**"
+            // ],
+            "presentation": {
+                "group": "tsc",
+            },
+            "console": "integratedTerminal", // fixes EACCESS error writing to console
+        },
+    ],
+    "compounds": [
+        {
+            "name": "Compound",
+            "configurations": [
+                "build",
+                "dev2"
+            ],
+            "stopAll": false
+        }
     ]
 }

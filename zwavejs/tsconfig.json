@@ -4,8 +4,7 @@
     "allowJs": true,
     "baseUrl": ".",
     "checkJs": false,
-    // instruct tsc that there are project references
-    // this also sets the default rootdir to the tsconfig.json directory
+    // using references would be nice but it doesn't work with tsc-alias
     // "composite": true,
     "declaration": true,
     "declarationMap": true,
@@ -13,6 +12,7 @@
     "emitDecoratorMetadata": false,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "incremental": true,
     // Avoid runtime imports that are unnecessary
     "lib": [
       "esnext",
@@ -26,24 +26,22 @@
     "noImplicitThis": true,
     "outDir": "./build",
     // paths avoids the need for relative paths
+    // ./hivelib is a symlink to the shared dir ../hivelib/src
     "paths": {
       "@hivelib/*": [
-        "./hivelib/src/*"
+        "./hivelib/*"
       ],
       "@keys/*": [
-        "./hivelib/src/keys/*"
+        "./hivelib/keys/*"
       ],
       "@zwavejs/*": [
         "./src/*"
       ]
     },
     "preserveSymlinks": true,
-    /* Necessary to support yarn portals with the node-modules linker, used by yarn link (berry) */
     "pretty": true,
-    "rootDirs": [
-      ".",
-      // "hivelib"
-    ],
+    "rootDir": ".",
+    "removeComments": false,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
@@ -53,14 +51,15 @@
       "node"
     ],
   },
+  // tsc-alias doesn't work with references. using symlink to hivelib/src instead
   // "references": [
   //   {
   //     "path": "../hivelib"
   //   },
   // ],
   "include": [
-    "src/**/*.ts",
-    "hivelib/src/**/*.ts",
+    "./src/**/*.ts",
+    "./hivelib/**/*.ts",
   ],
   "exclude": [
     "./build",
