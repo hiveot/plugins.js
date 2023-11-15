@@ -18,7 +18,7 @@ export class HubClient {
 	// client handlers for action requests of things published by this client, if any.
 	actionHandler: ((tv: ThingValue) => string) | null = null;
 	// client handlers for config changes to things published by this client, if any.
-	configHandler: ((tv: ThingValue) => string) | null = null;
+	configHandler: ((tv: ThingValue) => boolean) | null = null;
 	// client handler for subscribed events
 	eventHandler: ((tv: ThingValue) => void) | null = null;
 
@@ -32,9 +32,9 @@ export class HubClient {
 		this.statusMessage = 'Please login to continue';
 
 		// hook into transport events
-		tp.onConnect = this.connectionHandler.bind(this);
-		tp.onEvent = this.handleEvent.bind(this)
-		tp.onRequest = this.handleRequest.bind(this)
+		tp.setConnectHandler(this.connectionHandler.bind(this));
+		tp.setEventHandler(this.handleEvent.bind(this));
+		tp.setRequestHandler(this.handleRequest.bind(this));
 	}
 
 	// MakeAddress creates a message address optionally with wildcards
@@ -187,15 +187,20 @@ export class HubClient {
 	async pubAction(agentID: string, thingID: string, name: string, payload: string): Promise<string | null> {
 		console.log("pubAction. agentID:", agentID, ", thingID:", thingID, ", actionName:", name)
 		let addr = this._makeAddress(MessageTypes.Action, agentID, thingID, name, this.clientID);
-		return this.tp.pubRequest(addr, payload);
+		let reply = await this.tp.pubRequest(addr, payload);
+		if (typeof (reply) == "boolean") {
+			return String(reply)
+		}
+		return reply
 	}
 
 	// PubAction publishes a request for changing a Thing's configuration.
 	// The configuration is a writable property as defined in the Thing's TD.
-	async pubConfig(agentID: string, thingID: string, propName: string, propValue: string): Promise<string | null> {
+	async pubConfig(agentID: string, thingID: string, propName: string, propValue: string): Promise<boolean> {
 		console.log("pubConfig. agentID:", agentID, ", thingID:", thingID, ", propName:", propName)
 		let addr = this._makeAddress(MessageTypes.Config, agentID, thingID, propName, this.clientID);
-		return this.tp.pubRequest(addr, propValue)
+		let accepted = await this.tp.pubRequest(addr, propValue)
+		return (!!accepted)
 	}
 
 	// PubEvent publishes a Thing event. The payload is an event value as per TD document.
@@ -247,6 +252,8 @@ export class HubClient {
 		let reply = await this.tp.pubRequest(addr, payload);
 		if (reply == "") {
 			return ""
+		} else if (reply == true || reply == false) {
+			return reply
 		}
 		return JSON.parse(reply);
 	}
@@ -264,7 +271,7 @@ export class HubClient {
 		this.actionHandler = handler
 	}
 	// set the handler of thing configuration requests
-	set onConfig(handler: (tv: ThingValue) => string) {
+	set onConfig(handler: (tv: ThingValue) => boolean) {
 		this.configHandler = handler
 	}
 	// set the handler for subscribed events
@@ -333,7 +340,14 @@ export class HubClient {
 		if (msgType == MessageTypes.Action && this.actionHandler != null) {
 			return this.actionHandler(tv)
 		} else if (msgType == MessageTypes.Config && this.configHandler != null) {
-			return this.configHandler(tv)
+			let success = this.configHandler(tv)
+			if (!success) {
+				err = new Error("handleRequest: Config request not accepted")
+				console.log(err)
+				throw err
+			} else {
+				return ""
+			}
 		} else {
 			err = Error("handleRequest: No handler is set for " + msgType + " messages")
 			throw err
@@ -377,7 +391,7 @@ export function NewHubClientFromTransport(transport: IHubTransport, clientID: st
 //   - keyPair is this client's serialized private/public key pair, or "" to create them.
 //   - caCertPem of server or "" to not verify server cert
 //   - core server to use, "nats" or "mqtt". Default "" will use nats if url starts with "nats" or mqtt otherwise.
-export function NewHubClient(url: string, clientID: string, caCertPem: string, core: string): HubClient {
+export function NewHubClient(url: string, clientID: string, caCertPem: string, core?: string): HubClient {
 	let tp: IHubTransport
 	if (core == "nats" || url.startsWith("nats")) {
 		tp = new NatsTransport(url, clientID, caCertPem)

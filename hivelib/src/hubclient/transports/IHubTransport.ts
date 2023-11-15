@@ -39,7 +39,7 @@ export interface IHubTransport {
     // @param address to publish on
     // @param payload with serialized message to publish
     // @returns reply with serialized response message
-    pubRequest(address: string, payload: string): Promise<string>;
+    pubRequest(address: string, payload: string): Promise<string | boolean>;
 
     // set handler that is notified of changes in connection status and an error in 
     // case of an  unintentional disconnect.
@@ -55,13 +55,13 @@ export interface IHubTransport {
     //
     // If a reconnect is to take place with a different password or token then 
     // call disconnect(), followed by connectWithXyz().
-    set onConnect(handler: (connected: boolean, err: Error | null) => void)
+    setConnectHandler(handler: (connected: boolean, err: Error | null) => void): void
 
 
     // Set the handler for incoming event-type messages.
     // Event type messages are those that do not contain a reply-to address and correlation data.
     //
-    set onEvent(handler: (addr: string, payload: string) => void)
+    setEventHandler(handler: (addr: string, payload: string) => void): void
 
     // Set the handler for incoming request-response message.
     // The handler will be invoked if a message is received that contains a reply-to
@@ -72,15 +72,16 @@ export interface IHubTransport {
     //
     // The result of the handler will be sent as a reply.
     // This requires MQTT v5.
-    set onRequest(handler: (addr: string, payload: string) => string)
+    setRequestHandler(handler: (addr: string, payload: string) => string): void
 
-    // Add the subscription of a given address.
-    // The message or request handler will be invoked when a message on this
-    // address is received.
-    // @param address to add to subscriptions
+    // Subscribe adds a subscription for an event or request address.
+    // Incoming messages are passed to the event handler or the request handler, depending on whether they
+    // have a reply-to address. The event/request handler will handle the routing as this is application specific.
+    // Subscriptions remain in effect when the connection with the messaging server is interrupted.
+    //
+    // The address MUST be constructed using the tokens provided by AddressTokens()
     subscribe(address: string): Promise<void>;
 
     // unsubscribe removes the address from the subscription list
-    // @param address to remove from subscriptions
     unsubscribe(address: string): void;
 }

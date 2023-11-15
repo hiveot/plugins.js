@@ -6,51 +6,65 @@
     "checkJs": false,
     // instruct tsc that there are project references
     // this also sets the default rootdir to the tsconfig.json directory
-    "composite": true,
+    // "composite": true,
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
-
     "emitDecoratorMetadata": false,
     "forceConsistentCasingInFileNames": true,
-    // "importHelpers": true,
-    // "incremental": true,
-    // "inlineSourceMap": true,
-//    "isolatedModules": true,
+    "isolatedModules": true,
     // Avoid runtime imports that are unnecessary
-      "lib": ["esnext","DOM"],
+    "lib": [
+      "esnext",
+    ],
     "module": "commonjs",
-    // "moduleResolution": "NodeNext",
+    "moduleResolution": "node",
     "noEmit": false,
+    "noEmitOnError": false,
+    "noErrorTruncation": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
     "outDir": "./build",
     // paths avoids the need for relative paths
     "paths": {
-      "@hivelib/*": ["../hivelib/src/*"],
-      "@keys/*": ["../hivelib/src/keys/*"],
-      "@zwavejs/*": ["./src/*"]
+      "@hivelib/*": [
+        "./hivelib/src/*"
+      ],
+      "@keys/*": [
+        "./hivelib/src/keys/*"
+      ],
+      "@zwavejs/*": [
+        "./src/*"
+      ]
     },
     "preserveSymlinks": true,
     /* Necessary to support yarn portals with the node-modules linker, used by yarn link (berry) */
     "pretty": true,
-
-    "rootDir": "./src",
+    "rootDirs": [
+      ".",
+      // "hivelib"
+    ],
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
+    "strict": true,
     "target": "esnext",
     "types": [
-         "node"
+      "node"
     ],
-    "strict": true,
   },
-  "references": [
-    {"path": "../hivelib"},
-  ],
+  // "references": [
+  //   {
+  //     "path": "../hivelib"
+  //   },
+  // ],
   "include": [
     "src/**/*.ts",
+    "hivelib/src/**/*.ts",
   ],
   "exclude": [
-    "build/**",
-    "node_modules",
-    "dist/**",
+    "./build",
+    "./node_modules",
+    "./dist",
   ],
 }

@@ -1,109 +1,43 @@
-import type {IZWaveConfig} from "./ZWAPI.js";
+import type { IZWaveConfig } from "./ZWAPI.js";
 import fs from "fs";
-import yaml from "yaml";
 import crypto from "crypto";
 import path from "path";
-import {program} from "commander";
 import os from "os";
+import { NodeEnvironment } from "@hivelib/appenv/NodeEnvironment.js";
+import { homedir } from 'os';
 
 
-export interface IBindingConfig extends IZWaveConfig {
-    logsDir: string
-    storesDir: string
-
-    // binding agent ID. Default is 'zwavejs-{homeID}'
-    agentID: string
-
-    // schema://address:port/ of the hub. Default is autodetect using DNS-SD
-    hubURL: string
-
-    // auth certificates directory
-    certsDir: string
+// This binding's service configuration  
+export class BindingConfig extends NodeEnvironment implements IZWaveConfig {
+    // zwave keys
+    S2_Unauthenticated: string = ""
+    S2_Authenticated: string = ""
+    S2_AccessControl: string = ""
+    S2_Legacy: string = ""
+    //
+    zwPort: string | undefined          // controller port: ""=auto, /dev/ttyACM0, ...
+    zwLogFile: string | undefined       // driver logfile if any
+    // driver log level, "" no logging
+    zwLogLevel: "error" | "warn" | "info" | "verbose" | "debug" | "" = "warn"
+    //
+    cacheDir: string | undefined          // alternate storage directory
+    //
 
     // logging of discovered value IDs to CSV. Intended for testing
     vidCsvFile: string | undefined
 
     // maximum number of scenes. Default is 10.
-    // this reduces it from 255 scenes, which produces massive TD documents
+    // this reduces it from 255 scenes, which produces massive TD documents.
     // For the case where more than 10 is needed, set this to whatever is needed.
-    maxNrScenes: number
+    maxNrScenes: number = 10
+
+    constructor(clientID: string) {
+        let homeDir = ""
+        let withFlags = true
+        super(clientID, homeDir, withFlags)
+    }
 }
 
-// ParseCommandline options and load config
-// This returns the new binding configuration.
-export function parseCommandlineConfig(bindingName: string): IBindingConfig {
-    let newConfig: IBindingConfig
-    // the application binary lives in {home}/bin/services
-    let homeDir = path.dirname(path.dirname(path.dirname(process.argv[0])))
-    let hostName = os.hostname()
-
-    program
-        .name('zwavejs')
-        .description("HiveOT binding for the zwave protocol using zwavejs")
-        .option('--hubURL <string>', "override the websocket address and port of the HiveOT Hub")
-        .option('-c --config <string>', "override the location of the config file ")
-        .option('--home <string>', "override the HiveOT application home directory")
-        .option('--certs <string>', "override service auth certificate directory")
-        .option('--logs <string>', "override log-files directory")
-        .option('--cache <string>', "override cache directory")
-    program.parse();
-    const options = program.opts()
-
-    // option '--home' changes all defaults
-    if (options.home) {
-        homeDir = options.home
-    }
-    // apply commandline overrides
-    let configPath = (options.config) ? options.config : path.join(homeDir, "config", bindingName + ".yaml")
-    let hubURL = options.hubURL ? options.hubURL : "" // default is auto discover
-    let certsDir = (options.certs) ? options.certs : path.join(homeDir, "certs")
-    let logsDir = (options.logs) ? options.logs : path.join(homeDir, "logs")
-    let cacheDir = (options.cache) ? options.cache : path.join(homeDir, "stores")
-
-    // load config. Save if it doesn't exist
-    // option '--config' changes the config file
-    if (!fs.existsSync(configPath)) {
-        saveDefaultConfig(configPath, bindingName, hubURL, certsDir, logsDir, cacheDir)
-    }
-    let cfgData = fs.readFileSync(configPath)
-    newConfig = yaml.parse(cfgData.toString())
-
-    // apply commandline overrides and ensure proper defaults
-    if (options.certs || !newConfig.certsDir) {
-        newConfig.certsDir = certsDir
-    }
-    if (options.logs || !newConfig.logsDir) {
-        newConfig.logsDir = logsDir
-    }
-    if (options.cache || !newConfig.cacheDir) {
-        newConfig.cacheDir = cacheDir
-    }
-    // ensure all required properties exist
-    if (!newConfig.agentID) {
-        newConfig.agentID = bindingName + "-" + hostName
-    }
-    if (options.hubURL) {
-        newConfig.hubURL = options.hubURL // auto discovery
-    }
-    if (!newConfig.maxNrScenes) {
-        newConfig.maxNrScenes = 10
-    }
-    console.log("home dir=", homeDir)
-    return newConfig
-}
-
-export function loadCerts(bindingName: string, certsDir: string): [clientCertPem: string, clientKeyPem: string, caCertPem: string] {
-
-    let clientCertFile = path.join(certsDir, bindingName + "Cert.pem")
-    let clientKeyFile = path.join(certsDir, bindingName + "Key.pem")
-    let caCertFile = path.join(certsDir, "caCert.pem")
-
-    let clientCertPem = fs.readFileSync(clientCertFile)
-    let clientKeyPem = fs.readFileSync(clientKeyFile)
-    let caCertPem = fs.readFileSync(caCertFile)
-
-    return [clientCertPem.toString(), clientKeyPem.toString(), caCertPem.toString()]
-}
 
 
 // Generate and a default configuration yaml file for the binding.
@@ -116,7 +50,7 @@ export function saveDefaultConfig(
         "\n" +
         "# Binding ID used for publications. \n" +
         "# Multiple instances must use different IDs. Default is binding-hostname\n" +
-        "publisherID: " + bindingID + "\n" +
+        "agentID: " + bindingID + "\n" +
         "\n" +
         "# Gateway connection protocol, address, port. Default is automatic\n" +
         "#gateway: wss://127.0.0.1:9884/ws\n" +
@@ -144,5 +78,5 @@ export function saveDefaultConfig(
         "\n" +
         "# Limit max nr of scenes to reduce TD document size. Default is 10\n" +
         "#maxNrScenes: 10\n"
-    fs.writeFileSync(configPath, ConfigText, {mode: 0o644})
+    fs.writeFileSync(configPath, ConfigText, { mode: 0o644 })
 }

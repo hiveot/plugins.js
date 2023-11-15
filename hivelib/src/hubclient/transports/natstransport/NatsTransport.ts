@@ -68,19 +68,19 @@ export class NatsTransport implements IHubTransport {
 
 
     // Set the callback of connect/disconnect updates
-    public set onConnect(handler: (connected: boolean, err: Error | null) => void) {
+    public setConnectHandler(handler: (connected: boolean, err: Error | null) => void) {
         this.connectHandler = handler
     }
 
     // Set the handler of incoming messages
-    public set onEvent(handler: (topic: string, payload: string) => void) {
+    public setEventHandler(handler: (topic: string, payload: string) => void) {
         this.messageHandler = handler
     }
 
     // Set the handler of incoming requests-response calls.
     // The result of the handler is sent as a reply.
     // Intended for handling actions and RPC requests.
-    public set onRequest(handler: (topic: string, payload: string) => string) {
+    public setRequestHandler(handler: (topic: string, payload: string) => string) {
         this.requestHandler = handler
     }
 

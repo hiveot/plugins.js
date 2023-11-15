@@ -7,9 +7,11 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc && tsc-alias",
-    "test": "tsx src/tests/hubconnect_test.ts",
-    "dist": "tsc && pkg --compress GZip package.json",
-    "dev": "tsc && ZWAVEJS_EXTERNAL_CONFIG=dist/cache node build/main.js --home ~/bin/hiveot",
+    "dist": "tsc && tsc-alias && pkg --compress GZip package.json",
+    "testtsc": "tsc && tsc-alias && node --preserve-symlinks build/src/tests/hubconnect_test.js",
+    "testtsx": "tsx --preserve-symlinks src/tests/hubconnect_test.ts",
+    "devtsc": "tsc && tsc-alias && ZWAVEJS_EXTERNAL_CONFIG=dist/cache node --preserve-symlinks build/src/main.js --home ~/bin/hiveot",
+    "devtsx": "ZWAVEJS_EXTERNAL_CONFIG=dist/cache tsx --preserve-symlinks src/main.ts --home ~/bin/hiveot",
     "version": "node --version"
   },
   "bin": "build/main.js",
@@ -25,15 +27,19 @@
     "outputPath": "dist"
   },
   "dependencies": {
+    "bonjour-service": "^1.1.1",
     "commander": "^10.0.0",
     "md5": "^2.3.0",
+    "mqtt": "^5.2.2",
+    "mqtt-packet": "^9.0.0",
+    "process": "^0.11.10",
     "serialport": "^10.5.0",
+    "tslog": "^4.9.2",
     "ws": "^8.12.0",
-    "yaml": "^2.2.1",
+    "yaml": "^2.3.4",
     "zwave-js": "^10.4.0"
   },
   "devDependencies": {
-    "@tsconfig/node20": "^20.1.2",
     "@types/md5": "^2.3.5",
     "@types/node": "^20.9.0",
     "@types/ws": "^8.5.9",

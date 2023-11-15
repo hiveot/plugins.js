@@ -35,7 +35,7 @@ async function test1() {
 
     hc.onConfig = (tv: ThingValue) => {
         console.log("onConfig: " + tv.name)
-        return "config"
+        return true
     }
 
     await hc.connectWithPassword(testPass)
@@ -50,8 +50,8 @@ async function test1() {
     }
 
     // publish a config request 
-    reply = await hc.pubConfig(testClient, "thing1", "prop1", "10")
-    if (reply != "config") {
+    let breply = await hc.pubConfig(testClient, "thing1", "prop1", "10")
+    if (breply != true) {
         throw ("unexpected config reply")
     }
 
@@ -71,16 +71,16 @@ async function test1() {
 
 
 // jest isn't working with tsx yet. Once it does then lets change the tests
-describe("test connect", () => {
-    it('should connect', async () => {
-        //running instance
-        const testClient = "test"
-        const testPass = "testpass"
-        let caCertPEM = ""
-        let hc = NewHubClient(testURL, testClient, caCertPEM, core)
-        await hc.connectWithPassword(testPass)
+// describe("test connect", () => {
+//     it('should connect', async () => {
+//         //running instance
+//         const testClient = "test"
+//         const testPass = "testpass"
+//         let caCertPEM = ""
+//         let hc = NewHubClient(testURL, testClient, caCertPEM, core)
+//         await hc.connectWithPassword(testPass)
 
-    })
-})
+//     })
+// })
 
 test1()

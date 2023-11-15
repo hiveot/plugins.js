@@ -1,6 +1,6 @@
 // mqtt and nats transport testing
 
-import { MqttTransport } from "@hivelib/hubclient/transports/mqtttransport/MqttTransport";
+import { MqttTransport } from "../transports/mqtttransport/MqttTransport";
 import { env, exit } from "process";
 import * as process from "process";
 
@@ -12,34 +12,40 @@ async function test1() {
         console.error("uncaughtException", err)
     })
 
+    // test server needs these credentials set up
     const testClient = "test"
     const testPass = "testpass"
+
     let caCertPEM = ""
     //running instance
     tp = new MqttTransport("mqtts://127.0.0.1:8883", testClient, caCertPEM)
 
-    tp.onEvent = (topic: string, payload: string) => {
-        console.log("onMessage:", topic)
+    tp.setEventHandler((topic: string, payload: string) => {
+        console.log("onEvent:", topic)
         lastMsg = payload
-    }
-    tp.onRequest = (topic: string, payload: string) => {
+    })
+    tp.setRequestHandler((topic: string, payload: string) => {
         console.log("onRequest:", topic)
         lastMsg = payload
         return payload
-    }
+    })
 
     await tp.connectWithPassword(testPass)
     await tp.subscribe("event/+/+/#")
+    await tp.subscribe("rpc/test/+/#")
 
     console.log("publishing hello world")
     await tp.pubEvent("event/test/testthing/event1/test", "hello world")
 
     await waitForSignal()
 
-    console.log("publishing hello world2")
-    let reply = await tp.pubRequest("event/test/testthing/event2/test", "hello world2")
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // console.log("publishing hello world2")
+    let reply = await tp.pubRequest("rpc/test/testthing/method1/test", "hello world2")
     if (reply != "hello world2") {
         console.error("wrong reply received")
+        throw ("wrong reply received")
     } else {
         console.log("SUCCESS!, received reply")
     }

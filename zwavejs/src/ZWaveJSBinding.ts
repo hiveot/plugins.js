@@ -1,17 +1,17 @@
 // ZWaveJSBinding.ts holds the entry point to the zwave binding along with its configuration
-import type {TranslatedValueID, ZWaveNode} from "zwave-js";
-import {InterviewStage} from "zwave-js";
-import {parseNode} from "./parseNode.js";
-import {ParseValues} from "./ParseValues.js";
-import {ZWAPI} from "./ZWAPI.js";
-import {HubClient} from "@hivelib/hubclient/HubClient";
-import {parseController} from "./parseController.js";
-import {logVid} from "./logVid.js";
-import {getPropID} from "./getPropID.js";
-import {ActionTypes, EventTypes, PropTypes} from "@hivelib/vocab/vocabulary";
-import type {IBindingConfig} from "./BindingConfig.js";
+import type { TranslatedValueID, ZWaveNode } from "zwave-js";
+import { InterviewStage } from "zwave-js";
+import { parseNode } from "./parseNode.js";
+import { ParseValues } from "./ParseValues.js";
+import { ZWAPI } from "./ZWAPI.js";
+import { HubClient } from "@hivelib/hubclient/HubClient";
+import { parseController } from "./parseController.js";
+import { logVid } from "./logVid.js";
+import { getPropID } from "./getPropID.js";
+import { ActionTypes, EventTypes, PropTypes } from "@hivelib/vocab/vocabulary";
 import fs from "fs";
-import {ThingValue} from "@hivelib/things/ThingValue";
+import { ThingValue } from "@hivelib/things/ThingValue";
+import { BindingConfig } from "./BindingConfig.js";
 
 
 // ZWaveBinding maps ZWave nodes to Thing TDs and events, and handles actions to control node inputs.
@@ -26,12 +26,12 @@ export class ZwaveJSBinding {
     vidCsvFD: number | undefined
     // only publish events when a value has changed
     publishOnlyChanges: boolean = false
-    config: IBindingConfig
+    config: BindingConfig
 
 
     // @param hapi: connectd Hub API to publish and subscribe
     // @param vidLogFile: optional csv file to write discovered VID and metadata records
-    constructor(hc: HubClient, config: IBindingConfig) {
+    constructor(hc: HubClient, config: BindingConfig) {
         this.hc = hc;
         this.config = config
         // zwapi handles the zwavejs specific details
@@ -42,86 +42,91 @@ export class ZwaveJSBinding {
         );
     }
 
+    // handle controller actions as defined in the TD
     handleActionRequest(tv: ThingValue): string {
-            let actionLower = tv.name.toLowerCase()
-            let targetNode: ZWaveNode | undefined
-            let node = this.zwapi.getNodeByDeviceID(tv.thingID)
-            if (node == undefined) {
-                console.error("handleActionRequest: ZWave node for thingID", tv.thingID,"does not exist")
-                return ""
-            }
-            console.info("action:" + tv.name)
-            // controller specific commands (see parseController)
-            switch (actionLower) {
-                case "begininclusion":
-                    this.zwapi.driver.controller.beginInclusion().then()
-                    break;
-                case "stopinclusion":
-                    this.zwapi.driver.controller.stopInclusion().then()
-                    break;
-                case "beginexclusion":
-                    this.zwapi.driver.controller.beginExclusion().then()
-                    break;
-                case "stopexclusion":
-                    this.zwapi.driver.controller.stopExclusion().then()
-                    break;
-                case "beginhealingnetwork":
-                    this.zwapi.driver.controller.beginHealingNetwork()
-                    break;
-                case "stophealingnetwork":
-                    this.zwapi.driver.controller.stopHealingNetwork()
-                    break;
-                case "getNodeNeighbors": // param nodeID
-                    targetNode = this.zwapi.getNodeByDeviceID(tv.thingID)
-                    if (targetNode) {
-                        this.zwapi.driver.controller.getNodeNeighbors(targetNode.id).then();
+        let actionLower = tv.name.toLowerCase()
+        let targetNode: ZWaveNode | undefined
+        let node = this.zwapi.getNodeByDeviceID(tv.thingID)
+        if (node == undefined) {
+            console.error("handleActionRequest: ZWave node for thingID", tv.thingID, "does not exist")
+            return ""
+        }
+        console.info("action:" + tv.name)
+        // controller specific commands (see parseController)
+        switch (actionLower) {
+            case "begininclusion":
+                this.zwapi.driver.controller.beginInclusion().then()
+                break;
+            case "stopinclusion":
+                this.zwapi.driver.controller.stopInclusion().then()
+                break;
+            case "beginexclusion":
+                this.zwapi.driver.controller.beginExclusion().then()
+                break;
+            case "stopexclusion":
+                this.zwapi.driver.controller.stopExclusion().then()
+                break;
+            case "beginhealingnetwork":
+                this.zwapi.driver.controller.beginHealingNetwork()
+                break;
+            case "stophealingnetwork":
+                this.zwapi.driver.controller.stopHealingNetwork()
+                break;
+            case "getNodeNeighbors": // param nodeID
+                targetNode = this.zwapi.getNodeByDeviceID(tv.thingID)
+                if (targetNode) {
+                    this.zwapi.driver.controller.getNodeNeighbors(targetNode.id).then();
+                }
+                break;
+            case "healNode": // param nodeID
+                targetNode = this.zwapi.getNodeByDeviceID(tv.thingID)
+                if (targetNode) {
+                    this.zwapi.driver.controller.healNode(targetNode.id).then();
+                }
+                break;
+            case "removeFailedNode": // param nodeID
+                targetNode = this.zwapi.getNodeByDeviceID(tv.thingID)
+                if (targetNode) {
+                    this.zwapi.driver.controller.removeFailedNode(targetNode.id).then();
+                }
+                break;
+            // Special management actions that are accessible by writing configuration updates that are not VIDs
+            // case PropTypes.Name.toLowerCase():  // FIXME: what is this. set name ???
+            //     node.name = params;
+            //     break;
+            case "checklifelinehealth":
+                node.checkLifelineHealth().then()
+                break;
+            case ActionTypes.Ping.toLowerCase():
+                node.ping().then((success) => {
+                    this.hc.pubEvent(tv.thingID, ActionTypes.Ping, success ? "success" : "fail")
+                })
+                break;
+            case "refreshinfo":
+                // do not use when node interview is not yet complete
+                if (node.interviewStage == InterviewStage.Complete) {
+                    node.refreshInfo({ waitForWakeup: true }).then()
+                }
+                break;
+            case "refreshvalues":
+                node.refreshValues().then()
+                break;
+            default:
+                // VID based configuration and actions
+                //  currently propertyIDs are also accepted.
+                for (let vid of node.getDefinedValueIDs()) {
+                    let propID = getPropID(vid)
+                    if (propID.toLowerCase() == actionLower) {
+                        this.zwapi.setValue(node, vid, tv.data)
+                        break;
                     }
-                    break;
-                case "healNode": // param nodeID
-                    targetNode = this.zwapi.getNodeByDeviceID(tv.thingID)
-                    if (targetNode) {
-                        this.zwapi.driver.controller.healNode(targetNode.id).then();
-                    }
-                    break;
-                case "removeFailedNode": // param nodeID
-                    targetNode = this.zwapi.getNodeByDeviceID(tv.thingID)
-                    if (targetNode) {
-                        this.zwapi.driver.controller.removeFailedNode(targetNode.id).then();
-                    }
-                    break;
-                // Special management actions that are accessible by writing configuration updates that are not VIDs
-                // case PropTypes.Name.toLowerCase():  // FIXME: what is this. set name ???
-                //     node.name = params;
-                //     break;
-                case "checklifelinehealth":
-                    node.checkLifelineHealth().then()
-                    break;
-                case ActionTypes.Ping.toLowerCase():
-                    node.ping().then((success) => {
-                        this.hc.pubEvent(tv.thingID, ActionTypes.Ping, success ? "success" : "fail")
-                    })
-                    break;
-                case "refreshinfo":
-                    // do not use when node interview is not yet complete
-                    if (node.interviewStage == InterviewStage.Complete) {
-                        node.refreshInfo({waitForWakeup: true}).then()
-                    }
-                    break;
-                case  "refreshvalues":
-                    node.refreshValues().then()
-                    break;
-                default:
-                    // VID based configuration and actions
-                    //  currently propertyIDs are also accepted.
-                    for (let vid of node.getDefinedValueIDs()) {
-                        let propID = getPropID(vid)
-                        if (propID.toLowerCase() == actionLower) {
-                            this.zwapi.setValue(node, vid, tv.data)
-                            break;
-                        }
-                    }
-            }
+                }
+        }
         return ""
+    }
+    // handle configuration requests as defined in the TD
+    handleConfigRequest(tv: ThingValue): boolean {
+        return false
     }
 
     // Handle update of one of the node state flags
@@ -204,10 +209,6 @@ export class ZwaveJSBinding {
     //     }
     // }
 
-    // subscribe to actions
-     subActions() {
-         let sub = this.hc.subActions("", this.handleActionRequest)
-    }
 
     // Starts and run the binding. This does not return until Stop is called.
     // address of the Hub API.
@@ -219,8 +220,9 @@ export class ZwaveJSBinding {
             this.vidCsvFD = fs.openSync(this.config.vidCsvFile, "w+", 0o640)
             logVid(this.vidCsvFD)
         }
-        this.subActions()
-        // await this.hapi.subConfig(this.handleConfig)
+        this.hc.onAction = this.handleActionRequest
+        this.hc.onConfig = this.handleConfigRequest
+
         await this.zwapi.connect(this.config);
     }
 
