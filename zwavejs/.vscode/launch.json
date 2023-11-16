@@ -48,7 +48,7 @@
         },
         // run it using yarn
         {
-            "name": "Launch ZWaveJS",
+            "name": "dev",
             "type": "node",
             "request": "launch",
             "skipFiles": [
@@ -118,7 +118,7 @@
                 "build",
                 "dev2"
             ],
-            "stopAll": false
+            "stopAll": false,
         }
     ]
 }

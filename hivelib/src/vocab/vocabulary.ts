@@ -75,8 +75,8 @@ export enum DeviceTypes {
 // Intended for grouping events of similar types.
 export enum EventTypes {
     //
-    Properties = "properties", // standardized event with JSON properties key-value map
-    TD = "td", // standardized event with JSON TD document
+    Properties = "$properties", // standardized event with JSON properties key-value map
+    TD = "$td", // standardized event with JSON TD document
     //
     Acceleration = "acceleration",  // <boolean> acceleration in m/s2
     AirQuality = "airQuality",      // <number> in 1-10?

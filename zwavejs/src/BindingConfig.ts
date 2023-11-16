@@ -1,5 +1,5 @@
 import type { IZWaveConfig } from "./ZWAPI.js";
-import fs from "fs";
+import fs, { existsSync } from "fs";
 import crypto from "crypto";
 import path from "path";
 import os from "os";
@@ -9,7 +9,7 @@ import { homedir } from 'os';
 
 // This binding's service configuration  
 export class BindingConfig extends NodeEnvironment implements IZWaveConfig {
-    // zwave keys
+    // zwave network keys
     S2_Unauthenticated: string = ""
     S2_Authenticated: string = ""
     S2_AccessControl: string = ""
@@ -19,8 +19,8 @@ export class BindingConfig extends NodeEnvironment implements IZWaveConfig {
     zwLogFile: string | undefined       // driver logfile if any
     // driver log level, "" no logging
     zwLogLevel: "error" | "warn" | "info" | "verbose" | "debug" | "" = "warn"
-    //
-    cacheDir: string | undefined          // alternate storage directory
+    // cacheDir where zwavejs stores its discovered node info
+    cacheDir: string | undefined        // alternate storage directory
     //
 
     // logging of discovered value IDs to CSV. Intended for testing
@@ -32,11 +32,20 @@ export class BindingConfig extends NodeEnvironment implements IZWaveConfig {
     maxNrScenes: number = 10
 
     constructor(clientID: string) {
+        super()
         let homeDir = ""
         let withFlags = true
-        super(clientID, homeDir, withFlags)
+
+        this.initialize(clientID, homeDir, withFlags)
+        // zwave storage cache directory uses the storage directory
+        this.cacheDir = path.join(this.storesDir, this.clientID)
+        if (!existsSync(this.cacheDir)) {
+            // writable for current process only
+            fs.mkdirSync(this.cacheDir, { mode: 0o700 })
+        }
     }
 }
+
 
 
 
@@ -44,13 +53,13 @@ export class BindingConfig extends NodeEnvironment implements IZWaveConfig {
 export function saveDefaultConfig(
     configPath: string, bindingName: string, gateway: string, certsDir: string, logsDir: string, cacheDir: string) {
 
-    let bindingID = bindingName + "-" + os.hostname()
+    let clientID = bindingName + "-" + os.hostname()
     let ConfigText = "# HiveOT " + bindingName + " binding configuration file\n" +
         "# Generated: " + new Date().toString() + "\n" +
         "\n" +
         "# Binding ID used for publications. \n" +
-        "# Multiple instances must use different IDs. Default is binding-hostname\n" +
-        "agentID: " + bindingID + "\n" +
+        "# Multiple instances must use different IDs. Default is zwavejs-{hostname}\n" +
+        "clientID: " + clientID + "\n" +
         "\n" +
         "# Gateway connection protocol, address, port. Default is automatic\n" +
         "#gateway: wss://127.0.0.1:9884/ws\n" +

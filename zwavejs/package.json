@@ -9,18 +9,19 @@
     "build": "tsc && tsc-alias",
     "dist": "tsc && tsc-alias && pkg --compress GZip package.json",
     "dev": "tsc && tsc-alias && ZWAVEJS_EXTERNAL_CONFIG=dist/cache node --preserve-symlinks build/src/main.js --home ~/bin/hiveot",
-    "testtsc": "tsc && tsc-alias && node --preserve-symlinks build/src/tests/hubconnect_test.js",
+    "test": "tsc && tsc-alias && node --preserve-symlinks build/src/tests/hubconnect_test.js",
     "testtsx": "tsx --preserve-symlinks src/tests/hubconnect_test.ts",
     "devtsx": "ZWAVEJS_EXTERNAL_CONFIG=dist/cache tsx --preserve-symlinks src/main.ts --home ~/bin/hiveot",
     "version": "node --version"
   },
   "scriptComments": {
-    "dev": "build using tsc and tsc-alias, and run the application with node. This works with debugger step-through. (Yah!). ",
-    "devtsx": "experiment. running with tsx. Its all good except for debugging into modules.",
+    "build": "compile using tsc and tsc-alias",
     "dist": "build a single packaged executable for distribution. See dist/ for output",
-    "testtsc": "recommended way to run tests",
+    "dev": "build using tsc and tsc-alias, and run the application with node. This works with debugger step-through. (Yah!). ",
+    "devtsx": "experiment. running with tsx. Its all good, except debugging into modules has incorrect line numbers and is sometimes minified.",
+    "test": "recommended way to run tests",
     "testtsx": "experiment testing using tsx to run typescript. While tsx works as promised it doesn't support debugging imported modules",
-    "tsc-alias": "this doesn't work with tsconfig references. alias paths in outdir are not replaced. Workaround using symlink to library."
+    "tsc-alias": "note on tsc-alias. It doesn't work with tsconfig references. alias paths in outdir are not replaced. Workaround, do not use reference but use a symlink to library."
   },
   "bin": "build/src/main.js",
   "pkg": {

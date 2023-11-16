@@ -4,21 +4,17 @@ This binding connects to a ZWave USB-Stick controller and publishes Wot TD docum
 
 ## Status
 
-This binding is pre-alpha. It is converted to use with hiveot hub.
+This binding is alpha. It is converted to use with hiveot hub but needs further testing.
 
-TODOs:
-
-1. Connect to hiveot Hub
-1. Reconnect support
-1. Move lib to a typescript library folder reusable by other bindings
-
-ZWave handling TODOs:
-
+1. Hub Reconnect support
+1. ZWave stick reconnect support (Recover after serial port removal)
 1. Update/improve mapping of zwave-js VID names to hiveot property/event/action vocabulary.
 1. Include DataSchema in controller configurations for properties that aren't in the zwave-js vids.
 1. Dimming duration is currently not supported
 1. Load vid override map from file (determines vid prop/event/action and @type)
 2. Handle arrays for property/event/action values
+   a property with multiple values could be a nested array or a property-{instance}
+   tbd
 
 ## Build
 
