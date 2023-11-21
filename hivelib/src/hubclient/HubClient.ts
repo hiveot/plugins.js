@@ -1,10 +1,14 @@
 import { EventTypes, MessageTypes } from '../vocab/vocabulary.js';
 import type { ThingTD } from '../things/ThingTD.js';
-import { IHubTransport } from "./transports/IHubTransport.js";
+import { ConnInfo, ConnectionStatus, IHubTransport } from "./transports/IHubTransport.js";
 import { ThingValue } from "../things/ThingValue.js";
 import { MqttTransport } from "./transports/mqtttransport/MqttTransport.js";
 import { IHiveKey } from "@keys/IHiveKey";
 import { NatsTransport } from './transports/natstransport/NatsTransport.js';
+import * as tslog from 'tslog';
+
+
+const log = new tslog.Logger()
 
 // HubClient implements the javascript client for connecting to the hub,
 // using one of available transports.
@@ -12,13 +16,15 @@ export class HubClient {
 	tp: IHubTransport;
 	_clientID: string;
 	isInitialized: boolean = false;
-	status: 'disconnected' | 'authenticated' | 'connected';
-	statusMessage: string;
+	connStatus: ConnectionStatus;
+	connInfo: string;
 
-	// client handlers for action requests of things published by this client, if any.
+	// client handler for action requests of things published by this client, if any.
 	actionHandler: ((tv: ThingValue) => string) | null = null;
-	// client handlers for config changes to things published by this client, if any.
+	// client handler for config changes to things published by this client, if any.
 	configHandler: ((tv: ThingValue) => boolean) | null = null;
+	// client handler for connection stastus change
+	connectHandler: ((status: ConnectionStatus, info: ConnInfo) => void) | null = null
 	// client handler for subscribed events
 	eventHandler: ((tv: ThingValue) => void) | null = null;
 
@@ -28,13 +34,10 @@ export class HubClient {
 	constructor(tp: IHubTransport, clientID: string) {
 		this._clientID = clientID;
 		this.tp = tp;
-		this.status = 'disconnected';
-		this.statusMessage = 'Please login to continue';
+		this.connStatus = ConnectionStatus.Disconnected;
+		this.connInfo = ConnInfo.NotConnected;
 
-		// hook into transport events
-		tp.setConnectHandler(this.connectionHandler.bind(this));
-		tp.setEventHandler(this.handleEvent.bind(this));
-		tp.setRequestHandler(this.handleRequest.bind(this));
+		tp.setConnectHandler(this.onConnection.bind(this));
 	}
 
 	// MakeAddress creates a message address optionally with wildcards
@@ -121,8 +124,8 @@ export class HubClient {
 	}
 
 	// return the current connection status
-	get connectionStatus(): { status: string, message: string } {
-		return { status: this.status, message: this.statusMessage };
+	get connectionStatus(): { status: ConnectionStatus, info: string } {
+		return { status: this.connStatus, info: this.connInfo };
 	}
 
 	// connect and login to the Hub gateway using a JWT token
@@ -146,19 +149,15 @@ export class HubClient {
 	}
 
 	// callback handler invoked when the connection status has changed
-	connectionHandler(isConnected: boolean, err: Error | null) {
-		console.info('onConnectHandler. Connected=', isConnected);
-		if (isConnected) {
-			console.log('HubClient connected');
-			this.status = 'connected';
-			this.statusMessage = 'Connected to the Hub gateway. Login to authenticate.';
+	onConnection(status: ConnectionStatus, info: string) {
+		this.connStatus = status
+		this.connInfo = info
+		if (this.connStatus == ConnectionStatus.Connected) {
+			log.info('HubClient connected');
+		} else if (this.connStatus == ConnectionStatus.Connecting) {
+			log.info('HubClient attempt connecting');
 		} else {
-			console.log('HubClient disconnected');
-			this.status = 'disconnected';
-			this.statusMessage = 'Connection to Hub gateway is lost';
-			if (err != null) {
-				this.statusMessage = err.message
-			}
+			log.info('HubClient disconnected');
 		}
 	}
 
@@ -168,10 +167,8 @@ export class HubClient {
 	}
 	// disconnect if connected
 	async disconnect() {
-		if (this.status != 'disconnected') {
+		if (this.connStatus != ConnectionStatus.Disconnected) {
 			this.tp.disconnect()
-			this.status = 'disconnected';
-			this.statusMessage = 'disconnected by user';
 		}
 	}
 
@@ -185,7 +182,7 @@ export class HubClient {
 	//
 	// This returns the serialized reply data or null in case of no reply data
 	async pubAction(agentID: string, thingID: string, name: string, payload: string): Promise<string | null> {
-		console.log("pubAction. agentID:", agentID, ", thingID:", thingID, ", actionName:", name)
+		log.info("pubAction. agentID:", agentID, ", thingID:", thingID, ", actionName:", name)
 		let addr = this._makeAddress(MessageTypes.Action, agentID, thingID, name, this.clientID);
 		let reply = await this.tp.pubRequest(addr, payload);
 		if (typeof (reply) == "boolean") {
@@ -197,7 +194,7 @@ export class HubClient {
 	// PubAction publishes a request for changing a Thing's configuration.
 	// The configuration is a writable property as defined in the Thing's TD.
 	async pubConfig(agentID: string, thingID: string, propName: string, propValue: string): Promise<boolean> {
-		console.log("pubConfig. agentID:", agentID, ", thingID:", thingID, ", propName:", propName)
+		log.info("pubConfig. agentID:", agentID, ", thingID:", thingID, ", propName:", propName)
 		let addr = this._makeAddress(MessageTypes.Config, agentID, thingID, propName, this.clientID);
 		let accepted = await this.tp.pubRequest(addr, propValue)
 		return (!!accepted)
@@ -266,17 +263,24 @@ export class HubClient {
 	}
 
 
-	// set the handler of thing action requests
-	set onAction(handler: (tv: ThingValue) => string) {
+	// set the handler of thing action requests and subscribe to action requests
+	setActionHandler(handler: (tv: ThingValue) => string) {
 		this.actionHandler = handler
+		this.tp.setRequestHandler(this.onRequest.bind(this))
 	}
 	// set the handler of thing configuration requests
-	set onConfig(handler: (tv: ThingValue) => boolean) {
+	setConfigHandler(handler: (tv: ThingValue) => boolean) {
 		this.configHandler = handler
+		this.tp.setRequestHandler(this.onRequest.bind(this))
+	}
+	// set the handler of thing configuration requests
+	setConnectionHandler(handler: (status: ConnectionStatus, info: string) => boolean) {
+		this.connectHandler = handler
 	}
 	// set the handler for subscribed events
-	set onEvent(handler: (tv: ThingValue) => void) {
+	setEventHandler(handler: (tv: ThingValue) => void): void {
 		this.eventHandler = handler
+		this.tp.setEventHandler(this.onEvent.bind(this))
 	}
 
 
@@ -288,7 +292,7 @@ export class HubClient {
 	// }
 
 	// Handle incoming messages and pass them to the event handler
-	handleEvent(addr: string, payload: string): void {
+	onEvent(addr: string, payload: string): void {
 		let { msgType, agentID, thingID, name, senderID, err } =
 			this._splitAddress(addr)
 		let timestampMsec = Date.now() // UTC in msec
@@ -303,7 +307,7 @@ export class HubClient {
 		}
 		if (err != null) {
 			err = new Error("handleEvent: Received event on invalid address '" + addr + "': " + err.message)
-			console.log(err)
+			log.info(err)
 			throw err
 		}
 		if (this.eventHandler != null) {
@@ -314,7 +318,7 @@ export class HubClient {
 	// Handle incoming action or config request messages and pass them on to their
 	// respective handlers, if set.
 	// The response will be sent back to the caller.
-	handleRequest(addr: string, payload: string): string {
+	onRequest(addr: string, payload: string): string {
 
 		let { msgType, agentID, thingID, name, senderID, err } =
 			this._splitAddress(addr)
@@ -330,11 +334,11 @@ export class HubClient {
 		}
 		if (senderID == "") {
 			err = new Error("handleRequest: Missing senderID on address '" + addr + ", request ignored.")
-			console.log(err)
+			log.info(err)
 			throw err
 		} else if (err != null) {
 			err = new Error("handleRequest: Received request on invalid address '" + addr + "': " + err.message)
-			console.log(err)
+			log.info(err)
 			throw err
 		}
 		if (msgType == MessageTypes.Action && this.actionHandler != null) {
@@ -343,7 +347,7 @@ export class HubClient {
 			let success = this.configHandler(tv)
 			if (!success) {
 				err = new Error("handleRequest: Config request not accepted")
-				console.log(err)
+				log.info(err)
 				throw err
 			} else {
 				return ""

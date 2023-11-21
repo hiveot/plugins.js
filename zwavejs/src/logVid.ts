@@ -1,13 +1,13 @@
 // Log the given VID to a CSV file.
 // If vid is undefined, then write the header, otherwise the vid data
-import type {TranslatedValueID, ValueMetadataNumeric, ValueMetadataString, ZWaveNode} from "zwave-js";
-import type {ConfigurationMetadata, ValueMetadataBuffer} from "@zwave-js/core";
-import {CommandClasses, ConfigValueFormat} from "@zwave-js/core";
-import type {VidAffordance} from "./getVidAffordance";
+import type { TranslatedValueID, ValueMetadataNumeric, ValueMetadataString, ZWaveNode } from "zwave-js";
+import type { ConfigurationMetadata, ValueMetadataBuffer } from "@zwave-js/core";
+import { CommandClasses, ConfigValueFormat } from "@zwave-js/core";
+import type { VidAffordance } from "./getVidAffordance";
 import fs from "fs";
 
 export function logVid(logFd: number | undefined, node?: ZWaveNode, vid?: TranslatedValueID,
-                       propID?: string, va?: VidAffordance) {
+    propID?: string, va?: VidAffordance) {
     if (!logFd) {
         return
     } else if (!node || !vid) {
@@ -51,9 +51,9 @@ export function logVid(logFd: number | undefined, node?: ZWaveNode, vid?: Transl
                 let formatStr = ConfigValueFormat[vmc.format].toString()
                 dataType += " (" + formatStr + ")"
             }
-            if (vmc.info) {
+            if (vmc.description) {
                 // not clear when info is available and what it contains
-                description += "; info: " + vmc.info;
+                description += "; description: " + vmc.description;
             }
             if (vmc.allowManualEntry != undefined) {
                 allowManualEntry = String(vmc.allowManualEntry)
@@ -63,8 +63,8 @@ export function logVid(logFd: number | undefined, node?: ZWaveNode, vid?: Transl
 
     switch (vm.type) {
         case "duration":
-        case "number" :
-        case "color" :
+        case "number":
+        case "color":
             let vidNum = vm as ValueMetadataNumeric
             min = vidNum.min?.toString() || ""
             max = vidNum.max?.toString() || ""

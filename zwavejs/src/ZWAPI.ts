@@ -1,8 +1,10 @@
 import {
     Driver,
-    HealNodeStatus,
+    Endpoint,
     InclusionResult,
     NodeStatus,
+    RebuildRoutesStatus,
+    RemoveNodeReason,
     TranslatedValueID,
     ValueMetadataNumeric,
     ZWaveNode,
@@ -12,8 +14,10 @@ import {
     ZWaveNodeValueRemovedArgs,
     ZWaveNodeValueUpdatedArgs,
 } from "zwave-js";
-import fs from "fs";
+import fs, { opendir } from "fs";
 import { Logger } from "tslog";
+import { CommandClasses } from '@zwave-js/core';
+import path from "path";
 
 const tslog = new Logger({ name: "ZWAPI" })
 
@@ -25,8 +29,10 @@ export interface IZWaveConfig {
     S2_Authenticated: string
     S2_AccessControl: string
     S2_Legacy: string
-    //
-    zwPort: string | undefined,                     // controller port: ""=auto, /dev/ttyACM0, ...
+    // disable soft reset on startup. Use if driver fails to connect to the controller
+    zwDisableSoftReset: boolean | undefined,
+    // controller port: default auto, /dev/serial/by-id/usb...
+    zwPort: string | undefined,
     zwLogFile: string | undefined       // driver logfile if any
     zwLogLevel: "error" | "warn" | "info" | "verbose" | "debug" | "",      // driver log level, "" no logging
     //
@@ -86,8 +92,10 @@ export class ZWAPI {
 
         let zwPort = zwConfig.zwPort
         if (!zwPort) {
+            tslog.info("serial port not set... searching")
             zwPort = findSerialPort()
         }
+        tslog.info("connecting", "port", zwPort)
 
         let options = {
             securityKeys: {
@@ -111,7 +119,10 @@ export class ZWAPI {
                 // allow for a different cache directory
                 cacheDir: zwConfig.cacheDir,
             },
+            // workaround for sticks that don't handle this and refuse connection after reset
+            enableSoftReset: !zwConfig.zwDisableSoftReset,
         };
+        tslog.info("ZWaveJS config option soft_reset on startup is " + (options.enableSoftReset ? "enabled" : "disabled"))
 
         // Start the driver. To await this method, put this line into an async method
         this.driver = new Driver(zwPort, options);
@@ -205,12 +216,12 @@ export class ZWAPI {
             tslog.info("exclusion has stopped");
         });
 
-        this.driver.controller.on("heal network progress",
-            (progress: ReadonlyMap<number, HealNodeStatus>) => {
-                tslog.info("heal network progress:", progress);
+        this.driver.controller.on("rebuild routes progress",
+            (progress: ReadonlyMap<number, RebuildRoutesStatus>) => {
+                tslog.info("rebuild routes progress:", progress);
             });
-        this.driver.controller.on("heal network done", () => {
-            tslog.info("heal network done");
+        this.driver.controller.on("rebuild routes done", () => {
+            tslog.info("rebuild routes done");
         });
 
         this.driver.controller.on("inclusion failed", () => {
@@ -228,8 +239,8 @@ export class ZWAPI {
             tslog.info(`new node added: nodeId=${node.id} lowSecurity=${result.lowSecurity}`)
             this.setupNode(node);
         });
-        this.driver.controller.on("node removed", (node: ZWaveNode, replaced: boolean) => {
-            tslog.info(`node removed: id=${node.id}, replaced=${replaced}`);
+        this.driver.controller.on("node removed", (node: ZWaveNode, reason: RemoveNodeReason) => {
+            tslog.info(`node removed: id=${node.id}, reason=${reason}`);
         });
 
     }
@@ -280,11 +291,15 @@ export class ZWAPI {
             // this.onNodeUpdate(node)
             let newValue = node.getValue(args)
             this.onValueUpdate(node, args, newValue)
-            tslog.info(`Node ${node.id} value metadata updated. ${args.metadata}`);
+            tslog.info(`Node ${node.id} value metadata updated`,
+                "property", args.property,
+                "propkeyname", args.propertyKeyName,
+                "newValue", newValue,
+            );
         });
 
-        node.on("notification", (node, cc, args) => {
-            tslog.info(`Node ${node.id} Notification: CC=${cc}, args=${args}`)
+        node.on("notification", (endpoint: Endpoint, cc: CommandClasses, args) => {
+            tslog.info(`Node ${endpoint.nodeId} Notification: CC=${cc}, args=${args}`)
             // TODO: what/when is this notification providing?
         });
 
@@ -385,6 +400,18 @@ export class ZWAPI {
 
 // Determine which serial port is available
 function findSerialPort(): string {
+    const serialDir = "/dev/serial/by-id/"
+    try {
+
+        const dir = fs.opendirSync(serialDir);
+        let first = dir.readSync()
+        if (first != null) {
+            return path.join(serialDir, first.name)
+        }
+    } catch (err) {
+        console.error(err);
+    }
+
     // ports to check with for automatic discovery of ports
     const AutoPorts = [
         "/dev/ttyACM0",

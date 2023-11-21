@@ -1,5 +1,5 @@
 {
-  "name": "zwavejs-binding",
+  "name": "zwavejs",
   "version": "0.2-alpha",
   "description": "HiveOT Zwave binding using zwavejs",
   "license": "MIT",
@@ -8,10 +8,11 @@
   "scripts": {
     "build": "tsc && tsc-alias",
     "dist": "tsc && tsc-alias && pkg --compress GZip package.json",
-    "dev": "tsc && tsc-alias && ZWAVEJS_EXTERNAL_CONFIG=dist/cache node --preserve-symlinks build/src/main.js --home ~/bin/hiveot",
+    "dev": "tsc && tsc-alias && ZWAVEJS_EXTERNAL_CONFIG=dist/cache node --preserve-symlinks build/src/main.js --clientID test --home ~/bin/hiveot",
+    "install": "cp dist/zwavejs ~/bin/hiveot/plugins",
     "test": "tsc && tsc-alias && node --preserve-symlinks build/src/tests/hubconnect_test.js",
     "testtsx": "tsx --preserve-symlinks src/tests/hubconnect_test.ts",
-    "devtsx": "ZWAVEJS_EXTERNAL_CONFIG=dist/cache tsx --preserve-symlinks src/main.ts --home ~/bin/hiveot",
+    "devtsx": "ZWAVEJS_EXTERNAL_CONFIG=dist/cache tsx --preserve-symlinks src/main.ts --clientID test --home ~/bin/hiveot",
     "version": "node --version"
   },
   "scriptComments": {
@@ -28,10 +29,11 @@
     "scripts": [],
     "compress": "GZip",
     "assets": [
-      "node_modules/@serialport"
+      "node_modules/@zwave-js/serial/node_modules/@serialport/bindings-cpp/**/*",
+      "node_modules/zwave-js/node_modules/@serialport/bindings-cpp/**/*"
     ],
     "targets": [
-      "node18"
+      "node18.5-linux-x64"
     ],
     "outputPath": "dist"
   },
@@ -46,7 +48,7 @@
     "tslog": "^4.9.2",
     "ws": "^8.12.0",
     "yaml": "^2.3.4",
-    "zwave-js": "^10.4.0"
+    "zwave-js": "^12.3.1"
   },
   "devDependencies": {
     "@types/md5": "^2.3.5",

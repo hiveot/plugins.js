@@ -95,6 +95,7 @@
             ],
             "program": "build/src/main.js",
             "args": [
+                "--clientID test",
                 "--home ~/bin/hiveot"
             ],
             // "env": {

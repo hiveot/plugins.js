@@ -12,20 +12,28 @@ import { ActionTypes, EventTypes, PropTypes } from "@hivelib/vocab/vocabulary";
 import fs from "fs";
 import { ThingValue } from "@hivelib/things/ThingValue";
 import { BindingConfig } from "./BindingConfig.js";
+import * as tslog from 'tslog';
+
+const log = new tslog.Logger()
 
 
 // ZWaveBinding maps ZWave nodes to Thing TDs and events, and handles actions to control node inputs.
+//
+// NOTE: zwavejs v12 train wreck:
+// https://community.home-assistant.io/t/z-wave-network-lost-i-believe-after-update-to-z-wave-js-ui-v2-1-1-serial-port-error/625899
+// in short, soft-reset attempt might reset the USB port and move it
+// over from /dev/ttyACM0->/dev/ttyACM1 and vice versa.
+// Proposed solution is to use /dev/serial/by-id, however that doesn't seem to fix it.
+// for now stick with version v11.3
+//
 export class ZwaveJSBinding {
     // id: string = "zwave";
     hc: HubClient;
     zwapi: ZWAPI;
     // the last received values for each node by deviceID
     lastValues = new Map<string, ParseValues>(); // nodeId: ValueMap
-    // the last published values for each node by deviceID
-    // publishedValues = new Map<string, ParseValues>();
+
     vidCsvFD: number | undefined
-    // only publish events when a value has changed
-    publishOnlyChanges: boolean = false
     config: BindingConfig
 
 
@@ -48,10 +56,10 @@ export class ZwaveJSBinding {
         let targetNode: ZWaveNode | undefined
         let node = this.zwapi.getNodeByDeviceID(tv.thingID)
         if (node == undefined) {
-            console.error("handleActionRequest: ZWave node for thingID", tv.thingID, "does not exist")
+            log.error("handleActionRequest: ZWave node for thingID", tv.thingID, "does not exist")
             return ""
         }
-        console.info("action:" + tv.name)
+        log.info("action:" + tv.name)
         // controller specific commands (see parseController)
         switch (actionLower) {
             case "begininclusion":
@@ -66,25 +74,26 @@ export class ZwaveJSBinding {
             case "stopexclusion":
                 this.zwapi.driver.controller.stopExclusion().then()
                 break;
-            case "beginhealingnetwork":
-                this.zwapi.driver.controller.beginHealingNetwork()
+
+            case "beginrebuildingroutes":
+                this.zwapi.driver.controller.beginRebuildingRoutes()
                 break;
-            case "stophealingnetwork":
-                this.zwapi.driver.controller.stopHealingNetwork()
+            case "stoprebuildingroutes":
+                this.zwapi.driver.controller.stopRebuildingRoutes()
                 break;
-            case "getNodeNeighbors": // param nodeID
+            case "getnodeneighbors": // param nodeID
                 targetNode = this.zwapi.getNodeByDeviceID(tv.thingID)
                 if (targetNode) {
                     this.zwapi.driver.controller.getNodeNeighbors(targetNode.id).then();
                 }
                 break;
-            case "healNode": // param nodeID
+            case "rebuildnoderoutes": // param nodeID
                 targetNode = this.zwapi.getNodeByDeviceID(tv.thingID)
                 if (targetNode) {
-                    this.zwapi.driver.controller.healNode(targetNode.id).then();
+                    this.zwapi.driver.controller.rebuildNodeRoutes(targetNode.id).then();
                 }
                 break;
-            case "removeFailedNode": // param nodeID
+            case "removefailednode": // param nodeID
                 targetNode = this.zwapi.getNodeByDeviceID(tv.thingID)
                 if (targetNode) {
                     this.zwapi.driver.controller.removeFailedNode(targetNode.id).then();
@@ -155,7 +164,7 @@ export class ZwaveJSBinding {
     // Handle discovery or update of a node.
     // This publishes the TD and its property values
     handleNodeUpdate(node: ZWaveNode) {
-        console.log("handleNodeUpdate:node:", node.id);
+        log.info("handleNodeUpdate:node:", node.id);
         let thingTD = parseNode(this.zwapi, node, this.vidCsvFD, this.config.maxNrScenes);
 
         if (node.isControllerNode) {
@@ -186,7 +195,7 @@ export class ZwaveJSBinding {
         let valueMap = this.lastValues.get(deviceID);
         // update the map of recent values
         let lastValue = valueMap?.values[propID]
-        if (valueMap && (lastValue !== newValue || !this.publishOnlyChanges)) {
+        if (valueMap && (lastValue !== newValue || !this.config.publishOnlyChanges)) {
             valueMap.values[propID] = newValue
             //
             let serValue = JSON.stringify(newValue)
@@ -213,22 +222,24 @@ export class ZwaveJSBinding {
     // Starts and run the binding. This does not return until Stop is called.
     // address of the Hub API.
     async start() {
-        console.log("startup");
+        log.info("ZWaveJS binding start");
 
         // optional logging of discovered VID
         if (this.config.vidCsvFile) {
             this.vidCsvFD = fs.openSync(this.config.vidCsvFile, "w+", 0o640)
             logVid(this.vidCsvFD)
         }
-        this.hc.onAction = this.handleActionRequest
-        this.hc.onConfig = this.handleConfigRequest
+        this.hc.setActionHandler(this.handleActionRequest)
+        this.hc.setConfigHandler(this.handleConfigRequest)
 
         await this.zwapi.connect(this.config);
+
+        // TODO: subscribe to actions and config
     }
 
     // Stop the binding and disconnect from the ZWave controller
     async stop() {
-        console.log("Shutting Down...");
+        log.info("Shutting Down...");
         await this.zwapi.disconnect();
         if (this.vidCsvFD) {
             fs.close(this.vidCsvFD)

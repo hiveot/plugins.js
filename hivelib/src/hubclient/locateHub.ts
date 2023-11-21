@@ -1,14 +1,16 @@
 
-import {Bonjour} from 'bonjour-service';
+import { Bonjour } from 'bonjour-service';
+import * as tslog from 'tslog';
 
 const HIVEOT_HUB_SERVICE = "hiveot";
+const log = new tslog.Logger()
 
 // locateHub uses DNS-SD to search the hiveot record of the hub gateway for up to 5 seconds.
 // If found, it returns with its websocket address wss://<addr>:<port>/<path>
-export async function locateHub():Promise<{hubURL: string,core:string}> {
+export async function locateHub(): Promise<{ hubURL: string, core: string }> {
     return new Promise((resolve, reject) => {
         const locator = new Bonjour();
-        locator.findOne({ type: HIVEOT_HUB_SERVICE }, 5000, function (service:any) {
+        locator.findOne({ type: HIVEOT_HUB_SERVICE }, 5000, function (service: any) {
             if (!service || !service.addresses || service.addresses.length == 0 || !service.txt) {
                 reject("service not found");
                 return;
@@ -20,8 +22,8 @@ export async function locateHub():Promise<{hubURL: string,core:string}> {
             let wssPort = kv["wss"];
             let wssPath = kv["path"];
             addr = "wss://" + addr + ":" + wssPort + wssPath;
-            console.log("found service: ", addr);
-            resolve({hubURL:addr, core:core});
+            log.info("found service: ", addr);
+            resolve({ hubURL: addr, core: core });
         });
     });
 }

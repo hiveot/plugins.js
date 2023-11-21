@@ -1,6 +1,10 @@
 import { ECDSAKey } from "@hivelib/keys/ECDSAKey";
 import { IHiveKey } from "@hivelib/keys/IHiveKey";
-import { IHubTransport } from "../IHubTransport";
+import { ConnectionStatus, IHubTransport } from "../IHubTransport";
+import * as tslog from 'tslog';
+
+const log = new tslog.Logger()
+
 
 export class NatsTransport implements IHubTransport {
     // expect nats://addr:port/ 
@@ -10,7 +14,7 @@ export class NatsTransport implements IHubTransport {
     instanceID: string = ""
 
     // application handler of connection status change
-    connectHandler: null | ((connected: boolean, err: Error) => void) = null;
+    connectHandler: null | ((connectStatus: ConnectionStatus, info: string) => void) = null;
     // application handler of incoming messages
     messageHandler: null | ((topic: string, payload: string) => void) = null;
     // application handler of incoming request-response messages
@@ -68,7 +72,7 @@ export class NatsTransport implements IHubTransport {
 
 
     // Set the callback of connect/disconnect updates
-    public setConnectHandler(handler: (connected: boolean, err: Error | null) => void) {
+    public setConnectHandler(handler: (connectStatus: ConnectionStatus, info: string) => void) {
         this.connectHandler = handler
     }
 

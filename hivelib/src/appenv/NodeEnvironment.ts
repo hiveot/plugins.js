@@ -152,8 +152,8 @@ export class NodeEnvironment extends Object {
             program
                 .name('zwavejs')
                 .description("HiveOT binding for the zwave protocol using zwavejs")
-                .option('-c --config <string>', "override the location of the config file ")
-                .option('-i, --clientID', "application client ID to authenticate as")
+                .option('-c, --config <string>', "override the location of the config file ")
+                .option('--clientID <string>', "application client ID to authenticate as")
                 .option('--home <string>', "override the HiveOT application home directory")
                 .option('--certs <string>', "override service auth certificate directory")
                 .option('--logs <string>', "override log-files directory")

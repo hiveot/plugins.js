@@ -1,13 +1,15 @@
 
 // MqttTransport
-import { IHubTransport } from "../IHubTransport";
+import { ConnInfo, ConnectionStatus, IHubTransport } from "../IHubTransport";
 import * as mqtt from 'mqtt';
 import * as os from "os";
 import { IHiveKey } from "@keys/IHiveKey";
 import { ECDSAKey } from "@keys/ECDSAKey";
 import { IPublishPacket } from 'mqtt';
 import { QoS } from "mqtt-packet";
+import * as tslog from 'tslog';
 
+const log = new tslog.Logger()
 
 export class MqttTransport implements IHubTransport {
     // expect mqtt://addr:port/
@@ -20,7 +22,7 @@ export class MqttTransport implements IHubTransport {
     qos: QoS = 0
 
     // application handler of connection status change
-    connectHandler: null | ((connected: boolean, err: Error | null) => void) = null;
+    connectHandler: null | ((status: ConnectionStatus, info: string) => void) = null;
     // application handler of incoming messages
     eventHandler: null | ((topic: string, payload: string) => void) = null;
     // application handler of incoming request-response messages
@@ -51,7 +53,7 @@ export class MqttTransport implements IHubTransport {
         // let urlParts = new URL(this.fullURL)
         let p = new Promise<void>((resolve, reject) => {
 
-            // console.log("connectWithPassword; url:", this.fullURL, "; clientID:", this.clientID)
+            // log.info("connectWithPassword; url:", this.fullURL, "; clientID:", this.clientID)
 
             let timestamp = Date.now().toString() // msec since epoch
             let rn = Math.random().toString(16).substring(2, 8)
@@ -78,45 +80,45 @@ export class MqttTransport implements IHubTransport {
             this.mcl = mqtt.connect(this.fullURL, opts)
 
             this.mcl.on("connect", (packet: any) => {
-                console.log("MQTT client connected to:", this.fullURL)
+                log.info("MQTT client connected to:", this.fullURL)
                 // subscribe to inbox; server only allows inbox subscription with the clientID
                 // to prevent subscribing to other client's inboxes.
                 this.inboxTopic = "_INBOX/" + this.instanceID
                 if (this.mcl) {
                     let inboxSub = this.mcl.subscribe(this.inboxTopic)
-                    console.log("subscribed to ", this.inboxTopic)
+                    log.info("subscribed to ", this.inboxTopic)
                 }
                 resolve()
                 if (this.connectHandler) {
-                    this.connectHandler(true, null)
+                    this.connectHandler(ConnectionStatus.Connected, ConnInfo.Success)
                 }
             })
             this.mcl.on("disconnect", (packet: mqtt.IDisconnectPacket) => {
-                console.log("MQTT server disconnected:")
+                log.info("MQTT server disconnected:")
                 let reason: string = packet.reasonCode?.toString() || ""
                 let err: Error | null = null
                 if (packet.reasonCode != 0) {
                     err = new Error(reason + ":" + packet.properties?.reasonString)
                 }
                 if (this.connectHandler) {
-                    this.connectHandler(false, err)
+                    this.connectHandler(ConnectionStatus.Disconnected, err?.message || "")
                 }
             })
 
             this.mcl.on("error", (err: Error) => {
-                console.error("MQTT error: ", err.message)
+                log.error("MQTT error: ", err.message)
                 reject(err)
             })
             this.mcl.on("message",
                 (topic: string, payload: Buffer, packet: IPublishPacket) => {
-                    // console.log("on message. topic:", topic)
+                    // log.info("on message. topic:", topic)
                     this.onRawMessage(topic, payload, packet)
                 })
             this.mcl.on("offline", () => {
-                console.error("Connection lost")
+                log.error("Connection lost")
             })
             // this.mcl.on("packetreceive", (packet: mqtt.Packet) => {
-            //     console.error("packetReceive: cmd:", packet.cmd)
+            //     log.error("packetReceive: cmd:", packet.cmd)
             // })
 
 
@@ -157,7 +159,7 @@ export class MqttTransport implements IHubTransport {
             if (topic.startsWith(this.inboxTopic)) {
                 // this is a response
                 if (corid == "") {
-                    console.error("onRawMessage: ignored response without correlation ID.")
+                    log.error("onRawMessage: ignored response without correlation ID.")
                 } else {
                     // find the handler for the correlation ID.
                     let handler = this.replyHandlers[corid]
@@ -190,7 +192,7 @@ export class MqttTransport implements IHubTransport {
                 }
             }
         } catch (e) {
-            console.error("onRawMessage: Exception handling message. topic:", topic, ", err:", e)
+            log.error("onRawMessage: Exception handling message. topic:", topic, ", err:", e)
         }
     }
 
@@ -225,11 +227,11 @@ export class MqttTransport implements IHubTransport {
             this.mcl ? this.mcl.publish(
                 address, payload, opts, (err) => {
                     if (err) {
-                        console.log(err)
+                        log.info(err)
                         reject()
                         throw (err)
                     } else {
-                        console.log('pubRequest: Request sent to ' + address + 'with correlationID:', corid)
+                        log.info('pubRequest: Request sent to ' + address + 'with correlationID:', corid)
                     }
                 }) : "";
             // if the timer isn't cancelled in time, it will reject the request
@@ -240,7 +242,7 @@ export class MqttTransport implements IHubTransport {
                 function (corrID: string, payload: string): void {
                     // received a reply, cancel the timer and resolve the request
                     clearTimeout(timoutID)
-                    console.log("pubRequest: invoking reply handler")
+                    log.info("pubRequest: invoking reply handler")
                     resolve(payload)
                 }
         })
@@ -251,7 +253,7 @@ export class MqttTransport implements IHubTransport {
     async pubReply(payload: string, err: Error | null, request: IPublishPacket) {
         if ((!this.mcl) || (!request.properties?.correlationData) || !request.properties.responseTopic) {
             let err = Error("pubReply: missing replyTo or correlationData")
-            console.error(err)
+            log.error(err)
             throw err
         }
         let corid = request.properties?.correlationData
@@ -271,17 +273,17 @@ export class MqttTransport implements IHubTransport {
         this.mcl.publish(replyTo, payload, opts, (err) => {
             if (err) {
                 // failed to send a reply
-                console.error("pubReply: failed to send reply. err=", err)
+                log.error("pubReply: failed to send reply. err=", err)
                 throw (err)
             } else {
-                console.log('pubReply: Request sent with correlation ID:', corid.toString())
+                log.info('pubReply: Request sent with correlation ID:', corid.toString())
             }
         })
         return
     }
 
     // Set the callback of connect/disconnect updates
-    public setConnectHandler(handler: (connected: boolean, err: Error | null) => void): void {
+    public setConnectHandler(handler: (status: ConnectionStatus, info: string) => void): void {
         this.connectHandler = handler
     }
 
@@ -310,10 +312,10 @@ export class MqttTransport implements IHubTransport {
             this.mcl.subscribe(topic, opts, (err, granted) => {
                 // remove registration if subscription fails
                 if (err) {
-                    console.error("subscribe: failed: " + err);
+                    log.error("subscribe: failed: " + err);
                     reject(err)
                 } else {       // all good
-                    console.log("subscribe: topic:" + topic);
+                    log.info("subscribe: topic:" + topic);
                     resolve()
                 }
             })

@@ -24,19 +24,19 @@ async function test1() {
     //running instance
     let hc = NewHubClient(testURL, testClient, caCertPEM, core)
 
-    hc.onAction = (tv: ThingValue) => {
+    hc.setActionHandler((tv: ThingValue) => {
         console.log("Received action: " + tv.name)
         return "action"
-    }
+    })
 
-    hc.onEvent = (tv: ThingValue) => {
+    hc.setEventHandler((tv: ThingValue) => {
         console.log("onEvent: " + tv.name + ": " + tv.data)
-    }
+    })
 
-    hc.onConfig = (tv: ThingValue) => {
+    hc.setConfigHandler((tv: ThingValue) => {
         console.log("onConfig: " + tv.name)
         return true
-    }
+    })
 
     await hc.connectWithPassword(testPass)
 
