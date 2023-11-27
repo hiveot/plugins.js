@@ -1,6 +1,6 @@
 // Definition of the DataSchema used in TD affordances
 
-import {DataType} from "../vocab/vocabulary.js"
+import { DataType } from "../vocab/vocabulary"
 
 export class DataSchema extends Object {
     public constructor(init?: Partial<DataSchema>) {
@@ -85,9 +85,9 @@ export class DataSchema extends Object {
         this.enumTable = enumeration
         let keys = Object.values(enumeration)
         this.enum = keys.filter((key: any) => {
-                let isName = (!Number.isFinite(key))
-                return isName
-            }
+            let isName = (!Number.isFinite(key))
+            return isName
+        }
         )
         return this
     }

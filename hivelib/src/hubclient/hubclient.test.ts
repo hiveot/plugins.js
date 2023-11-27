@@ -1,11 +1,11 @@
 // mqtt and nats transport testing
 
-import { MqttTransport } from "@hivelib/hubclient/transports/mqtttransport/MqttTransport";
+import { MqttTransport } from "./transports/mqtttransport/MqttTransport";
 import { env, exit } from "process";
 import * as process from "process";
 import { HubClient, NewHubClient } from "./HubClient";
 import { IHubTransport } from './transports/IHubTransport';
-import { ThingValue } from "@hivelib/things/ThingValue";
+import { ThingValue } from "../things/ThingValue";
 
 let hc: HubClient
 let tp: IHubTransport

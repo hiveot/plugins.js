@@ -2,15 +2,15 @@
 DIST_FOLDER=./dist
 BUILD_FOLDER=./build
 INSTALL_HOME=~/bin/hiveot
-BINDINGS_HOME=$(INSTALL_HOME)/bin/bindings
+BINDINGS_HOME=$(INSTALL_HOME)/plugins
 .DEFAULT_GOAL := help
 
 .FORCE:
 
 all: dist
 
-js: .FORCE  ## Compile typescript
-	tsc
+build: .FORCE  ## Compile typescript
+	npx tsc && npx tsc-alias
 
 dist: ## Build binary app using pkg and esbuild
 	tsc
@@ -20,8 +20,6 @@ clean: ## Clear build and cache
 	rm -rf node_modules
 	rm -rf dist/*
 	rm -rf build/*
-	go clean
-	go mod tidy
 	yarn
 
 help: ## Show this help
@@ -31,11 +29,9 @@ install:   ## Install the plugin into $(INSTALL_HOME)
 	mkdir -p $(BINDINGS_HOME)
 	cp $(DIST_FOLDER)/* $(BINDINGS_HOME)
 
-run: wasm js ## Compile and run the app
+run: js ## Compile and run the app
 	node ${BUILD_FOLDER}/main.js  ~/bin/hiveot/certs
 
-test: ## Run tests
-	GOOS=js GOARCH=wasm go test -failfast  -cover ./...
 
 upgrade: ## Upgrade packages (use with care)
 	go get -u all

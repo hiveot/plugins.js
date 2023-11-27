@@ -1,9 +1,10 @@
-import { EventTypes, MessageTypes } from '../vocab/vocabulary.js';
+import { EventTypes, MessageType } from '../vocab/vocabulary.js';
 import type { ThingTD } from '../things/ThingTD.js';
-import { ConnInfo, ConnectionStatus, IHubTransport } from "./transports/IHubTransport.js";
-import { ThingValue } from "../things/ThingValue.js";
+import type { IHubTransport } from "./transports/IHubTransport.js";
+import { ConnInfo, ConnectionStatus } from "./transports/IHubTransport.js";
+import type { ThingValue } from "../things/ThingValue";
 import { MqttTransport } from "./transports/mqtttransport/MqttTransport.js";
-import { IHiveKey } from "@keys/IHiveKey";
+import type { IHiveKey } from "@hivelib/keys/IHiveKey";
 import { NatsTransport } from './transports/natstransport/NatsTransport.js';
 import * as tslog from 'tslog';
 
@@ -27,6 +28,8 @@ export class HubClient {
 	connectHandler: ((status: ConnectionStatus, info: ConnInfo) => void) | null = null
 	// client handler for subscribed events
 	eventHandler: ((tv: ThingValue) => void) | null = null;
+	// client handler for rpc requests of capabilities of this client, if any.
+	rpcHandler: ((tv: ThingValue) => string) | null = null;
 
 	// Hub Client
 	// @param transport is a connected transport
@@ -57,7 +60,7 @@ export class HubClient {
 		let addr: string
 
 		if (msgType == "") {
-			msgType = MessageTypes.Event
+			msgType = MessageType.Event
 		}
 		if (agentID == "") {
 			agentID = wc
@@ -96,7 +99,7 @@ export class HubClient {
 		let parts = addr.split(sep)
 
 		// inbox topics are short
-		if (parts.length >= 1 && parts[0] == MessageTypes.INBOX) {
+		if (parts.length >= 1 && parts[0] == MessageType.INBOX) {
 			msgType = parts[0]
 			if (parts.length >= 2) {
 				agentID = parts[1]
@@ -142,10 +145,22 @@ export class HubClient {
 		await this.tp.connectWithPassword(password);
 
 		// receive actions and config requests for this agent.
-		let addr = this._makeAddress(MessageTypes.Action, this.clientID, "", "", "")
+		let addr = this._makeAddress(MessageType.Action, this.clientID, "", "", "")
 		this.tp.subscribe(addr)
-		addr = this._makeAddress(MessageTypes.Config, this.clientID, "", "", "")
+		addr = this._makeAddress(MessageType.Config, this.clientID, "", "", "")
 		this.tp.subscribe(addr)
+	}
+
+
+	createKeyPair(): IHiveKey {
+		let kp = this.tp.createKeyPair()
+		return kp
+	}
+	// disconnect if connected
+	async disconnect() {
+		if (this.connStatus != ConnectionStatus.Disconnected) {
+			this.tp.disconnect()
+		}
 	}
 
 	// callback handler invoked when the connection status has changed
@@ -161,135 +176,6 @@ export class HubClient {
 		}
 	}
 
-	createKeyPair(): IHiveKey {
-		let kp = this.tp.createKeyPair()
-		return kp
-	}
-	// disconnect if connected
-	async disconnect() {
-		if (this.connStatus != ConnectionStatus.Disconnected) {
-			this.tp.disconnect()
-		}
-	}
-
-
-	// PubAction publishes a request for action from a Thing.
-	//
-	//	@param agentID: of the device or service that handles the action.
-	//	@param thingID: is the destination thingID to whom the action applies.
-	//	name is the name of the action as described in the Thing's TD
-	//	payload is the optional serialized message of the action as described in the Thing's TD
-	//
-	// This returns the serialized reply data or null in case of no reply data
-	async pubAction(agentID: string, thingID: string, name: string, payload: string): Promise<string | null> {
-		log.info("pubAction. agentID:", agentID, ", thingID:", thingID, ", actionName:", name)
-		let addr = this._makeAddress(MessageTypes.Action, agentID, thingID, name, this.clientID);
-		let reply = await this.tp.pubRequest(addr, payload);
-		if (typeof (reply) == "boolean") {
-			return String(reply)
-		}
-		return reply
-	}
-
-	// PubAction publishes a request for changing a Thing's configuration.
-	// The configuration is a writable property as defined in the Thing's TD.
-	async pubConfig(agentID: string, thingID: string, propName: string, propValue: string): Promise<boolean> {
-		log.info("pubConfig. agentID:", agentID, ", thingID:", thingID, ", propName:", propName)
-		let addr = this._makeAddress(MessageTypes.Config, agentID, thingID, propName, this.clientID);
-		let accepted = await this.tp.pubRequest(addr, propValue)
-		return (!!accepted)
-	}
-
-	// PubEvent publishes a Thing event. The payload is an event value as per TD document.
-	// Intended for devices and services to notify of changes to the Things they are the agent for.
-	//
-	// thingID is the ID of the 'thing' whose event to publish.
-	// This is the ID under which the TD document is published that describes
-	// the thing. It can be the ID of the sensor, actuator or service.
-	//
-	// This will use the client's ID as the agentID of the event.
-	// eventName is the ID of the event described in the TD document 'events' section,
-	// or one of the predefined events listed above as EventIDXyz
-	//
-	//	@param thingID: of the Thing whose event is published
-	//	@param eventName: is one of the predefined events as described in the Thing TD
-	//	@param payload: is the serialized event value, or nil if the event has no value
-	async pubEvent(thingID: string, eventName: string, payload: string) {
-		let addr = this._makeAddress(MessageTypes.Event, this.clientID, thingID, eventName, this.clientID)
-
-		return this.tp.pubEvent(addr, payload)
-	}
-
-	// Publish a Thing property map
-	// Ignored if props map is empty
-	async pubProperties(thingID: string, props: { [key: string]: any }) {
-		// if (length(props.) > 0) {
-		let propsJSON = JSON.stringify(props, null, ' ');
-		if (propsJSON.length > 2) {
-			await this.pubEvent(thingID, EventTypes.Properties, propsJSON);
-		}
-	}
-
-	// PubRPCRequest publishes an RPC request to a service and waits for a response.
-	// Intended for users and services to invoke RPC to services.
-	//
-	// Authorization to use the service capability can depend on the user's role. Check the service
-	// documentation for details. When unauthorized then an error will be returned after a short delay.
-	//
-	// The client's ID is used as the senderID of the rpc request.
-	//
-	//	agentID of the service that handles the request
-	//	capability is the capability to invoke
-	//	methodName is the name of the request method to invoke
-	//	req is the request message that will be marshalled or nil if no arguments are expected
-	//	returns a response message that is unmarshalled, or nil if no response is expected
-	async pubRPCRequest(agentID: string, capability: string, methodName: string, req: any): Promise<any> {
-		let addr = this._makeAddress(MessageTypes.RPC, agentID, capability, methodName, this.clientID);
-		let payload = JSON.stringify(req, null, ' ')
-		let reply = await this.tp.pubRequest(addr, payload);
-		if (reply == "") {
-			return ""
-		} else if (reply == true || reply == false) {
-			return reply
-		}
-		return JSON.parse(reply);
-	}
-
-	// PubTD publishes an event with a Thing TD document.
-	// The client's authentication ID will be used as the agentID of the event.
-	async pubTD(td: ThingTD) {
-		let tdJSON = JSON.stringify(td, null, ' ');
-		return this.pubEvent(td.id, EventTypes.TD, tdJSON);
-	}
-
-
-	// set the handler of thing action requests and subscribe to action requests
-	setActionHandler(handler: (tv: ThingValue) => string) {
-		this.actionHandler = handler
-		this.tp.setRequestHandler(this.onRequest.bind(this))
-	}
-	// set the handler of thing configuration requests
-	setConfigHandler(handler: (tv: ThingValue) => boolean) {
-		this.configHandler = handler
-		this.tp.setRequestHandler(this.onRequest.bind(this))
-	}
-	// set the handler of thing configuration requests
-	setConnectionHandler(handler: (status: ConnectionStatus, info: string) => boolean) {
-		this.connectHandler = handler
-	}
-	// set the handler for subscribed events
-	setEventHandler(handler: (tv: ThingValue) => void): void {
-		this.eventHandler = handler
-		this.tp.setEventHandler(this.onEvent.bind(this))
-	}
-
-
-	// Read Thing definitions from the directory
-	// @param publisherID whose things to read or "" for all publishers
-	// @param thingID whose to read or "" for all things of the publisher(s)
-	// async readDirectory(agentID: string, thingID: string): Promise<string> {
-	// 	return global.hapiReadDirectory(publisherID, thingID);
-	// }
 
 	// Handle incoming messages and pass them to the event handler
 	onEvent(addr: string, payload: string): void {
@@ -323,6 +209,7 @@ export class HubClient {
 		let { msgType, agentID, thingID, name, senderID, err } =
 			this._splitAddress(addr)
 		let timestampMsec = Date.now() // UTC in msec
+
 		let tv: ThingValue = {
 			agentID: agentID,
 			thingID: thingID,
@@ -341,9 +228,17 @@ export class HubClient {
 			log.info(err)
 			throw err
 		}
-		if (msgType == MessageTypes.Action && this.actionHandler != null) {
+		// detection of request must have been mistaken as only subscriptions with this
+		// clientID are made. 
+		if (agentID != this._clientID) {
+			err = new Error("request received for another agent");
+			log.error(err)
+			throw err
+		}
+
+		if (msgType == MessageType.Action && this.actionHandler != null) {
 			return this.actionHandler(tv)
-		} else if (msgType == MessageTypes.Config && this.configHandler != null) {
+		} else if (msgType == MessageType.Config && this.configHandler != null) {
 			let success = this.configHandler(tv)
 			if (!success) {
 				err = new Error("handleRequest: Config request not accepted")
@@ -358,16 +253,154 @@ export class HubClient {
 		}
 	}
 
+
+	// PubAction publishes a request for action from a Thing.
+	//
+	//	@param agentID: of the device or service that handles the action.
+	//	@param thingID: is the destination thingID to whom the action applies.
+	//	name is the name of the action as described in the Thing's TD
+	//	payload is the optional serialized message of the action as described in the Thing's TD
+	//
+	// This returns the serialized reply data or null in case of no reply data
+	async pubAction(agentID: string, thingID: string, name: string, payload: string): Promise<string | null> {
+		log.info("pubAction. agentID:", agentID, ", thingID:", thingID, ", actionName:", name)
+		let addr = this._makeAddress(MessageType.Action, agentID, thingID, name, this.clientID);
+		let reply = await this.tp.pubRequest(addr, payload);
+		if (typeof (reply) == "boolean") {
+			return String(reply)
+		}
+		return reply
+	}
+
+	// PubAction publishes a request for changing a Thing's configuration.
+	// The configuration is a writable property as defined in the Thing's TD.
+	async pubConfig(agentID: string, thingID: string, propName: string, propValue: string): Promise<boolean> {
+		log.info("pubConfig. agentID:", agentID, ", thingID:", thingID, ", propName:", propName)
+		let addr = this._makeAddress(MessageType.Config, agentID, thingID, propName, this.clientID);
+		let accepted = await this.tp.pubRequest(addr, propValue)
+		return (!!accepted)
+	}
+
+	// PubEvent publishes a Thing event. The payload is an event value as per TD document.
+	// Intended for devices and services to notify of changes to the Things they are the agent for.
+	//
+	// thingID is the ID of the 'thing' whose event to publish.
+	// This is the ID under which the TD document is published that describes
+	// the thing. It can be the ID of the sensor, actuator or service.
+	//
+	// This will use the client's ID as the agentID of the event.
+	// eventName is the ID of the event described in the TD document 'events' section,
+	// or one of the predefined events listed above as EventIDXyz
+	//
+	//	@param thingID: of the Thing whose event is published
+	//	@param eventName: is one of the predefined events as described in the Thing TD
+	//	@param payload: is the serialized event value, or nil if the event has no value
+	async pubEvent(thingID: string, eventName: string, payload: string) {
+		let addr = this._makeAddress(MessageType.Event, this.clientID, thingID, eventName, this.clientID)
+
+		return this.tp.pubEvent(addr, payload)
+	}
+
+	// Publish a Thing property map
+	// Ignored if props map is empty
+	async pubProperties(thingID: string, props: { [key: string]: any }) {
+		// if (length(props.) > 0) {
+		let propsJSON = JSON.stringify(props, null, ' ');
+		if (propsJSON.length > 2) {
+			await this.pubEvent(thingID, EventTypes.Properties, propsJSON);
+		}
+	}
+
+	// PubRPCRequest publishes an RPC request to a service and waits for a response.
+	// Intended for users and services to invoke RPC to services.
+	//
+	// Authorization to use the service capability can depend on the user's role. Check the service
+	// documentation for details. When unauthorized then an error will be returned after a short delay.
+	//
+	// The client's ID is used as the senderID of the rpc request.
+	//
+	//	agentID of the service that handles the request
+	//	capability is the capability to invoke
+	//	methodName is the name of the request method to invoke
+	//	req is the request message that will be marshalled or nil if no arguments are expected
+	//	returns a response message that is unmarshalled, or nil if no response is expected
+	async pubRPCRequest(agentID: string, capability: string, methodName: string, req: any): Promise<any> {
+		let addr = this._makeAddress(MessageType.RPC, agentID, capability, methodName, this.clientID);
+		let payload = JSON.stringify(req, null, ' ')
+		let reply = await this.tp.pubRequest(addr, payload);
+		if (reply == "") {
+			return ""
+		} else if (reply == true || reply == false) {
+			return reply
+		}
+		return JSON.parse(reply);
+	}
+
+	// PubTD publishes an event with a Thing TD document.
+	// The client's authentication ID will be used as the agentID of the event.
+	async pubTD(td: ThingTD) {
+		let tdJSON = JSON.stringify(td, null, ' ');
+		return this.pubEvent(td.id, EventTypes.TD, tdJSON);
+	}
+
+
+	// set the handler of thing action requests and subscribe to action requests
+	setActionHandler(handler: (tv: ThingValue) => string) {
+		this.actionHandler = handler
+		// handler of requests is the same for actions, config and rpc
+		this.tp.setRequestHandler(this.onRequest.bind(this))
+		let addr = this._makeAddress(MessageType.Action, this.clientID, "", "", "")
+		this.tp.subscribe(addr)
+	}
+	// set the handler of thing configuration requests
+	setConfigHandler(handler: (tv: ThingValue) => boolean) {
+		this.configHandler = handler
+		// handler of requests is the same for actions, config and rpc
+		this.tp.setRequestHandler(this.onRequest.bind(this))
+		let addr = this._makeAddress(MessageType.Config, this.clientID, "", "", "")
+		this.tp.subscribe(addr)
+	}
+	// set the handler of thing configuration requests
+	setConnectionHandler(handler: (status: ConnectionStatus, info: string) => boolean) {
+		this.connectHandler = handler
+	}
+	// set the handler for subscribed events
+	setEventHandler(handler: (tv: ThingValue) => void): void {
+		this.eventHandler = handler
+		this.tp.setEventHandler(this.onEvent.bind(this))
+	}
+	// set the handler of rpc requests
+	setRPCHandler(handler: (tv: ThingValue) => string) {
+		this.rpcHandler = handler
+		// handler of requests is the same for actions, config and rpc
+		this.tp.setRequestHandler(this.onRequest.bind(this))
+		let addr = this._makeAddress(MessageType.RPC, this.clientID, "", "", "")
+		this.tp.subscribe(addr)
+
+	}
+
+
+	// Read Thing definitions from the directory
+	// @param publisherID whose things to read or "" for all publishers
+	// @param thingID whose to read or "" for all things of the publisher(s)
+	// async readDirectory(agentID: string, thingID: string): Promise<string> {
+	// 	return global.hapiReadDirectory(publisherID, thingID);
+	// }
+
 	// Subscribe to events from things. 
 	//
 	// The events will be passed to the configured onEvent handler.
+	//
+	// note there is no unsubscribe. The intended use is to subscribe to devices/things/events
+	// of interest and leave it at that. Currently there is no use-case that requires
+	// a frequent subscribe/unsubscribe.
 	//
 	// @param agentID: optional filter on the agent that publishes events; "" for all agents.
 	// @param thingID: optional filter of the thing whose events are published; "" for all things
 	// @param eventID: optional filter on the event name; "" for all event names.
 	async subscribe(agentID: string, thingID: string, eventID: string): Promise<void> {
 
-		let addr = this._makeAddress(MessageTypes.Event, agentID, thingID, eventID, "");
+		let addr = this._makeAddress(MessageType.Event, agentID, thingID, eventID, "");
 
 		return this.tp.subscribe(addr)
 	}
@@ -408,5 +441,4 @@ export function NewHubClient(url: string, clientID: string, caCertPem: string, c
 	return hc
 }
 
-// 'hubClient' is the singleton connecting to the Hub
-// export const hubClient = new HubClient('hiveoview');
+

@@ -1,7 +1,7 @@
-import {getEnumMemberName, NodeStatus, ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType,} from "zwave-js";
-import {InterviewStage, SecurityClass} from '@zwave-js/core';
-import {PropTypes} from "@hivelib/vocab/vocabulary.js";
-import {getPropID} from "./getPropID.js";
+import { getEnumMemberName, NodeStatus, ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType, } from "zwave-js";
+import { InterviewStage, SecurityClass } from '@zwave-js/core';
+import { PropTypes } from "@hivelib/vocab/vocabulary";
+import { getPropID } from "./getPropID";
 
 
 // Value map for node values

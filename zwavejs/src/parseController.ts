@@ -1,8 +1,8 @@
 import type { ZWaveController, ZWaveNode } from "zwave-js";
 import { RFRegion } from "zwave-js";
-import type { ThingTD } from "@hivelib/things/ThingTD.js";
-import { DataSchema } from "@hivelib/things/dataSchema.js";
-import { DataType, } from "@hivelib/vocab/vocabulary.js";
+import type { ThingTD } from "@hivelib/things/ThingTD";
+import { DataSchema } from "@hivelib/things/dataSchema";
+import { DataType, } from "@hivelib/vocab/vocabulary";
 
 // parseController adds controller actions and attributes to the Thing
 export function parseController(td: ThingTD, ctl: ZWaveController) {

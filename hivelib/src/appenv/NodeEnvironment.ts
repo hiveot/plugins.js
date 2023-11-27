@@ -94,13 +94,15 @@ export class NodeEnvironment extends Object {
     //
     // This uses os.Args[0] application path to determine the home directory, which is the
     // parent of the application binary.
-    // The default clientID is based on the binary name using os.Args[0].
+    // The default clientID is based on the binary name using os.Args[0]. 
+    // The actual clientID is used for the configfile {clientID}.yaml, auth key and token file, and storage location.
     //
+    //  appID is the application binary name used as the default clientID
     //	homeDir to override the auto-detected or commandline paths. Use "" for defaults.
     //	withFlags parse the commandline flags for -home and -clientID
 
-    public initialize(clientID: string, homeDir: string, withFlags: boolean) {
-        this.clientID = clientID
+    public initialize(appID: string, homeDir: string, withFlags: boolean) {
+        this.clientID = appID
         this.homeDir = homeDir
 
         //serverCore := ""
@@ -166,24 +168,27 @@ export class NodeEnvironment extends Object {
             if (options.home) {
                 this.homeDir = options.home
             }
+            // option '--clientID' replaces the binary name for use in config and storage folders
+            if (options.clientID) {
+                this.clientID = options.clientID
+            }
             // apply commandline overrides
             if (options.config) {
                 // if a configfile is given then load it now as commandline overrides configfile
                 this.loadConfigFile(options.config)
             } else {
-                let configFile = path.join(this.homeDir, this.configDir, clientID + ".yaml")
+                let configFile = path.join(this.homeDir, this.configDir, this.clientID + ".yaml")
 
                 // try loading the config file
                 this.loadConfigFile(configFile)
             }
 
             this.certsDir = (options.certs) ? options.certs : this.certsDir
-            this.clientID = (options.clientID) ? options.clientID : clientID
             this.hubURL = options.server ? options.server : this.hubURL
             this.logsDir = (options.logs) ? options.logs : this.logsDir
             this.loglevel = (options.loglevel) ? options.loglevel : "warning"
         } else {
-            let configFile = path.join(this.configDir, clientID + ".yaml")
+            let configFile = path.join(this.configDir, this.clientID + ".yaml")
             // try loading the config file
             this.loadConfigFile(configFile)
         }
@@ -218,8 +223,8 @@ export class NodeEnvironment extends Object {
         }
 
         // determine the expected location of the service auth key and token
-        this.tokenFile = path.join(this.certsDir, clientID + ".token")
-        this.keyFile = path.join(this.certsDir, clientID + ".key")
+        this.tokenFile = path.join(this.certsDir, this.clientID + ".token")
+        this.keyFile = path.join(this.certsDir, this.clientID + ".key")
 
         // attempt to load the CA cert, client key, and auth token, if available in a file
         if (!this.caCertPEM) {
@@ -242,7 +247,7 @@ export class NodeEnvironment extends Object {
         if (!this.loginToken) {
             try {
                 this.loginToken = fs.readFileSync(this.tokenFile).toString()
-                this.loginToken.trim()
+                this.loginToken = this.loginToken.trim()
             } catch { }
         }
 

@@ -1,8 +1,8 @@
 // Definition of the Thing's TD, Thing Description document
 // This consists of the TD itself with properties
 
-import type {DataType} from "../vocab/vocabulary.js"
-import {DataSchema} from "./dataSchema.js";
+import type { DataType } from "../vocab/vocabulary"
+import { DataSchema } from "./dataSchema";
 
 
 export class InteractionAffordance extends Object {
@@ -216,7 +216,7 @@ export class ThingTD extends Object {
     // @param title is the title used in the property. Leave empty to use the name.
     // @param dataType is the type of data the property holds, DataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
     AddPropertyIf(initialValue: any, id: string, propType: string, title: string,
-                  dataType: DataType): PropertyAffordance | undefined {
+        dataType: DataType): PropertyAffordance | undefined {
 
         if (initialValue != undefined) {
             return this.AddProperty(id, propType, title, dataType, initialValue)

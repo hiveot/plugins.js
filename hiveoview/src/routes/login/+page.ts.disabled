@@ -1,8 +1,8 @@
 import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
-import { hapi } from '$lib/hapi/HubClient.js';
+import { hapi } from '@lib/hapi/HubClient.js';
 import { fail, redirect } from '@sveltejs/kit';
 
-/** @type {import("./$types").PageServerLoad} */
+/** @type {import("./@types").PageServerLoad} */
 export async function load(ev: ServerLoadEvent) {
 	// load cookie value for login name
 	const loginID = ev.cookies.get('loginID') || '';

@@ -24,7 +24,7 @@ S2_Legacy: 00112233445566778899aabbccddeeff
 #zwPort: /dev/serial/by-id/usb-0658_0200-if00
 
 # Disable zwavejs soft reset on startup when the controller doesn't support soft reset.
-#zwDisableSoftReset: true
+#zwDisableSoftReset: false
 
 # Optional logging of zwavejs driver
 # error, warn (default), http, info, verbose, or debug

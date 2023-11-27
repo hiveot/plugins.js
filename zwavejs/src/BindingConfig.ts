@@ -10,10 +10,10 @@ import { homedir } from 'os';
 // This binding's service configuration  
 export class BindingConfig extends NodeEnvironment implements IZWaveConfig {
     // zwave network keys
-    S2_Unauthenticated: string = ""
-    S2_Authenticated: string = ""
-    S2_AccessControl: string = ""
-    S2_Legacy: string = ""
+    S2_Unauthenticated: string | undefined
+    S2_Authenticated: string | undefined
+    S2_AccessControl: string | undefined
+    S0_Legacy: string | undefined
     //
     zwDisableSoftReset: boolean | undefined  // disable the soft reset if driver fails to connect 
     zwPort: string | undefined               // controller port: ""=auto, /dev/ttyACM0, ...

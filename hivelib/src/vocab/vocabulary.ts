@@ -4,7 +4,7 @@
 
 
 // reserved event and action names
-export enum MessageTypes {
+export enum MessageType {
     Action = "action",
     Config = "config",
     Event = "event",

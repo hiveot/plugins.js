@@ -1,18 +1,19 @@
 // ZWaveJSBinding.ts holds the entry point to the zwave binding along with its configuration
 import type { TranslatedValueID, ZWaveNode } from "zwave-js";
 import { InterviewStage } from "zwave-js";
-import { parseNode } from "./parseNode.js";
-import { ParseValues } from "./ParseValues.js";
+import { parseNode } from "./parseNode";
+import { ParseValues } from "./ParseValues";
 import { ZWAPI } from "./ZWAPI.js";
 import { HubClient } from "@hivelib/hubclient/HubClient";
-import { parseController } from "./parseController.js";
-import { logVid } from "./logVid.js";
-import { getPropID } from "./getPropID.js";
+import { parseController } from "./parseController";
+import { logVid } from "./logVid";
+import { getPropID } from "./getPropID";
 import { ActionTypes, EventTypes, PropTypes } from "@hivelib/vocab/vocabulary";
 import fs from "fs";
 import { ThingValue } from "@hivelib/things/ThingValue";
-import { BindingConfig } from "./BindingConfig.js";
+import { BindingConfig } from "./BindingConfig";
 import * as tslog from 'tslog';
+import { nextTick } from "process";
 
 const log = new tslog.Logger()
 
@@ -47,8 +48,10 @@ export class ZwaveJSBinding {
             this.handleNodeUpdate.bind(this),
             this.handleValueUpdate.bind(this),
             this.handleNodeStateUpdate.bind(this),
+            this.handleDriverError.bind(this),
         );
     }
+
 
     // handle controller actions as defined in the TD
     handleActionRequest(tv: ThingValue): string {
@@ -138,6 +141,11 @@ export class ZwaveJSBinding {
         return false
     }
 
+    // Driver failed, possibly due to removal of USB stick. Restart.
+    handleDriverError(e: Error): void {
+        log.error("driver error");
+    }
+
     // Handle update of one of the node state flags
     // This emits a corresponding event
     handleNodeStateUpdate(node: ZWaveNode, newState: string) {
@@ -219,8 +227,9 @@ export class ZwaveJSBinding {
     // }
 
 
-    // Starts and run the binding. This does not return until Stop is called.
-    // address of the Hub API.
+    // Starts and run the binding. 
+    // This starts the zwave API/driver and invokes connect.
+    // If an error is observed, invoke connect again.
     async start() {
         log.info("ZWaveJS binding start");
 
@@ -232,9 +241,7 @@ export class ZwaveJSBinding {
         this.hc.setActionHandler(this.handleActionRequest)
         this.hc.setConfigHandler(this.handleConfigRequest)
 
-        await this.zwapi.connect(this.config);
-
-        // TODO: subscribe to actions and config
+        this.zwapi.connectLoop(this.config);
     }
 
     // Stop the binding and disconnect from the ZWave controller

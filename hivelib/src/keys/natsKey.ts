@@ -1,26 +1,26 @@
 
-// ECDSA keys implementation using nodeJS
+// nats nkey based implementation using nodeJS
 import type { IHiveKey } from "./IHiveKey";
-import crypto from "crypto";
 
-export class ECDSAKey implements IHiveKey {
-    privKey: crypto.KeyObject | undefined
-    pubKey: crypto.KeyObject | undefined
+import * as nkeys from "nkeys.js"
+
+export class natsKey implements IHiveKey {
+    kp: nkeys.KeyPair
+    pubKey: string
 
     constructor() {
+        this.kp = nkeys.createUser()
+        this.pubKey = this.kp.getPublicKey()
     }
-
 
     // exportPrivate returns the encoded private key if available
     public exportPrivate(): string {
-        if (!this.privKey) {
+
+        if (!this.kp) {
             throw ("private key not created or imported")
         }
-        let privPEM = this.privKey.export({
-            format: "pem", // pem, der or jwk
-            type: "pkcs8",  // or sec1
-        })
-        return privPEM.toString()
+        let seed = this.kp.getSeed()
+        return seed.toString()
     }
 
     // exportPublic returns the encoded public key if available
@@ -28,48 +28,41 @@ export class ECDSAKey implements IHiveKey {
         if (!this.pubKey) {
             throw ("public key not created or imported")
         }
-        let pubPEM = this.pubKey.export({
-            format: "pem", // pem, der or jwk
-            type: "spki",
-        })
-        return pubPEM.toString()
+        return this.pubKey
     }
 
-    // importPrivate reads the key-pair from the encoded private key
+    // importPrivate reads the key-pair from the nkey seed.
     // This throws an error if the encoding is not a valid key
-    public importPrivate(privateEnc: string): IHiveKey {
-        // cool! crypto does all the work
-        this.privKey = crypto.createPrivateKey(privateEnc)
-        this.pubKey = crypto.createPublicKey(privateEnc)
+    public importPrivate(seedStr: string): IHiveKey {
+        let seedEnc = new TextEncoder().encode(seedStr)
+        nkeys.fromSeed(seedEnc)
         return this
     }
 
     // importPublic reads the public key from the encoded data.
     // This throws an error if the encoding is not a valid public key
-    public importPublic(publicEnc: string): IHiveKey {
-        this.pubKey = crypto.createPublicKey(publicEnc)
+    public importPublic(publicStr: string): IHiveKey {
+        this.pubKey = publicStr
+        this.kp = nkeys.fromPublic(publicStr)
         return this
     }
 
-
     // initialize generates a new key set using its curve algorithm
     public initialize(): IHiveKey {
-        let kp = crypto.generateKeyPairSync("ec", {
-            namedCurve: "secp256k1"
-        })
-        this.privKey = kp.privateKey
-        this.pubKey = kp.publicKey
+        let kp = nkeys.createUser()
+        this.pubKey = kp.getPublicKey()
         return this
     }
 
     // return the signature of a message signed using this key
     // this requires a private key to be created or imported
     public sign(message: Buffer): Buffer {
-        if (!this.privKey) {
-            throw ("private key not created or imported")
+        if (!this.kp) {
+            throw ("key not created or imported")
         }
-        let sigBuf = crypto.sign("sha256", message, this.privKey)
-        return sigBuf
+        // algorithm depends on key type. sha256 is not used in ed25519
+        let sigBuf = this.kp.sign(message)
+        return Buffer.from(sigBuf)
     }
 
     // verify the signature of a message using this key's public key
@@ -79,7 +72,7 @@ export class ECDSAKey implements IHiveKey {
         if (!this.pubKey) {
             throw ("public key not created or imported")
         }
-        let isValid = crypto.verify("sha256", message, this.pubKey, signature)
+        let isValid = this.kp.verify(message, signature)
         return isValid
     }
 }

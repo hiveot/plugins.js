@@ -1,4 +1,4 @@
-import {HubClient} from "@hivelib/hubclient/HubClient.js";
+import { HubClient } from "./HubClient";
 
 
 

@@ -1,5 +1,5 @@
 // ISubscription interface to underlying subscription mechanism
-import { IHiveKey } from "@keys/IHiveKey";
+import type { IHiveKey } from "@hivelib/keys/IHiveKey";
 
 
 export enum ConnectionStatus {

@@ -1,6 +1,6 @@
-import type {ZWaveNode} from "zwave-js";
-import {CommandClasses, ValueID} from "@zwave-js/core";
-import {ActionTypes, EventTypes} from "@hivelib/vocab/vocabulary.js";
+import type { ZWaveNode } from "zwave-js";
+import { CommandClasses, ValueID } from "@zwave-js/core";
+import { ActionTypes, EventTypes } from "@hivelib/vocab/vocabulary";
 
 
 // ValueID to Affordance classification
@@ -20,23 +20,23 @@ const overrideMap: Map<string, Partial<VidAffordance> | undefined> = new Map([
     ["32-restorePrevious", {}],
 
     // Binary Switch 0x25 (37) is an actuator
-    ["37-currentValue", {atType: ActionTypes.Switch, affordance: "event"}],
-    ["37-targetValue", {atType: ActionTypes.Switch, affordance: "action"}],
+    ["37-currentValue", { atType: ActionTypes.Switch, affordance: "event" }],
+    ["37-targetValue", { atType: ActionTypes.Switch, affordance: "action" }],
 
     // Multilevel Switch (38) is an actuator
 
     // Binary Sensor (48)
-    ["48-Any", {atType: EventTypes.Alarm, affordance: "event"}],
+    ["48-Any", { atType: EventTypes.Alarm, affordance: "event" }],
 
     // Meter - electrical
-    ["50-value-65537", {atType: EventTypes.Energy, affordance: "event"}],
-    ["50-value-66049", {atType: EventTypes.Power, affordance: "event"}],
-    ["50-value-66561", {atType: EventTypes.Voltage, affordance: "event"}],
-    ["50-value-66817", {atType: EventTypes.Current, affordance: "event"}],
-    ["50-reset", {affordance: "config"}], // for managers, not operators
+    ["50-value-65537", { atType: EventTypes.Energy, affordance: "event" }],
+    ["50-value-66049", { atType: EventTypes.Power, affordance: "event" }],
+    ["50-value-66561", { atType: EventTypes.Voltage, affordance: "event" }],
+    ["50-value-66817", { atType: EventTypes.Current, affordance: "event" }],
+    ["50-reset", { affordance: "config" }], // for managers, not operators
 
     // Notification
-    ["113-Home Security-Motion sensor status", {atType: EventTypes.Motion, affordance: "event"}],
+    ["113-Home Security-Motion sensor status", { atType: EventTypes.Motion, affordance: "event" }],
 ]);
 
 
@@ -69,12 +69,12 @@ function defaultVidAffordance(node: ZWaveNode, vid: ValueID, maxNrScenes: number
         case CommandClasses["Barrier Operator"]:
         case CommandClasses["Binary Switch"]:
         case CommandClasses["Binary Toggle Switch"]:
-        case CommandClasses["Door Lock"] :
-        case CommandClasses["HRV Control"] :
-        case CommandClasses["Humidity Control Mode"] :
-        case CommandClasses["Indicator"] :
-        case CommandClasses["Multilevel Switch"] :
-        case CommandClasses["Simple AV Control"] :
+        case CommandClasses["Door Lock"]:
+        case CommandClasses["HRV Control"]:
+        case CommandClasses["Humidity Control Mode"]:
+        case CommandClasses["Indicator"]:
+        case CommandClasses["Multilevel Switch"]:
+        case CommandClasses["Simple AV Control"]:
         case CommandClasses["Window Covering"]: {
             return vidMeta.writeable ? "action" : "event";
         }
@@ -86,7 +86,7 @@ function defaultVidAffordance(node: ZWaveNode, vid: ValueID, maxNrScenes: number
         case CommandClasses["Entry Control"]:
         case CommandClasses["Energy Production"]:
         case CommandClasses["HRV Status"]:
-        case CommandClasses["Humidity Control Operating State"] :
+        case CommandClasses["Humidity Control Operating State"]:
         case CommandClasses["Multilevel Sensor"]:
         case CommandClasses.Meter:
         case CommandClasses["Meter Table Monitor"]:
@@ -103,14 +103,14 @@ function defaultVidAffordance(node: ZWaveNode, vid: ValueID, maxNrScenes: number
         case CommandClasses["Color Switch"]:
         case CommandClasses["Configuration"]:
         case CommandClasses["Generic Schedule"]:
-        case CommandClasses["Humidity Control Setpoint"] :
+        case CommandClasses["Humidity Control Setpoint"]:
         case CommandClasses["Irrigation"]:
         case CommandClasses["Meter Table Configuration"]:
         case CommandClasses["Meter Table Push Configuration"]:
         case CommandClasses["Schedule"]:
 
         case CommandClasses["Thermostat Fan Mode"]:
-        case CommandClasses["Thermostat Mode"] :
+        case CommandClasses["Thermostat Mode"]:
         case CommandClasses["Thermostat Setpoint"]:
         case CommandClasses["Thermostat Setback"]:
         case CommandClasses["Tariff Table Configuration"]:
@@ -128,7 +128,7 @@ function defaultVidAffordance(node: ZWaveNode, vid: ValueID, maxNrScenes: number
         //  "supporting actuator nodes without duration capabilities MUST ignore this found and should set it to 0"
         //  0 means instantly; 1-127 in 1-second resolution; 128-254  in 1 minute resolution (1-127 minutes)
         case CommandClasses["Scene Controller Configuration"]:   // 1..255 scene IDs
-        case  CommandClasses["Scene Actuator Configuration"]: {
+        case CommandClasses["Scene Actuator Configuration"]: {
             if (vid.property == "dimmingDuration" || vid.property == "level") {
                 if (vid.propertyKey && Number(vid.propertyKey) > maxNrScenes) {
                     return undefined;
@@ -146,9 +146,9 @@ function defaultVidAffordance(node: ZWaveNode, vid: ValueID, maxNrScenes: number
         case CommandClasses["All Switch"]:  //
         case CommandClasses["Application Capability"]:  // obsolete
         case CommandClasses["Alarm Sensor"]:  // nodes also have Notification CC
-        {
-            return undefined
-        }
+            {
+                return undefined
+            }
     }
 
     if (!vidMeta.readable) {

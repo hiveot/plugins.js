@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { env, exit } from "process";
 import { NewHubClient } from "@hivelib/hubclient/HubClient"
-import { ZwaveJSBinding } from "./ZWaveJSBinding.js";
+import { ZwaveJSBinding } from "./ZWaveJSBinding";
 import path from "path";
 import { locateHub } from "@hivelib/hubclient/locateHub";
 import fs from "fs";
@@ -9,6 +9,9 @@ import { BindingConfig } from "./BindingConfig";
 import * as tslog from 'tslog';
 const log = new tslog.Logger({ name: "zwavejs" })
 
+process.on("uncaughtException", (err) => {
+    log.error("uncaught exception")
+})
 
 async function main() {
 
@@ -18,6 +21,10 @@ async function main() {
     let clientID = path.basename(process.argv0)
 
     let appConfig = new BindingConfig(clientID)
+
+    // REMOVE THE FOLLOWING LINE AFTER INITIAL DEVELOPMENT
+    // My Z-stick doesn't handle soft reset
+    appConfig.zwDisableSoftReset = true
 
 
     // When running from a pkg'ed binary, zwavejs must have a writable copy for device config. 
@@ -51,6 +58,7 @@ async function main() {
 
     //--- Step 3: Start the binding and zwavejs driver
     let binding = new ZwaveJSBinding(hc, appConfig);
+
     await binding.start();
 
     //--- Step 4: Wait for  SIGINT or SIGTERM signal to stop

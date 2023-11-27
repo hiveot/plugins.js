@@ -21,7 +21,11 @@ export async function locateHub(): Promise<{ hubURL: string, core: string }> {
             let core = kv["core"];
             let wssPort = kv["wss"];
             let wssPath = kv["path"];
-            addr = "wss://" + addr + ":" + wssPort + wssPath;
+            if (wssPort) {
+                addr = "wss://" + addr + ":" + wssPort + wssPath;
+            } else {
+                addr = kv["rawurl"]
+            }
             log.info("found service: ", addr);
             resolve({ hubURL: addr, core: core });
         });

@@ -1,12 +1,13 @@
 
 // MqttTransport
-import { ConnInfo, ConnectionStatus, IHubTransport } from "../IHubTransport";
+import { ConnInfo, ConnectionStatus } from "../IHubTransport";
+import type { IHubTransport } from "../IHubTransport";
 import * as mqtt from 'mqtt';
 import * as os from "os";
-import { IHiveKey } from "@keys/IHiveKey";
-import { ECDSAKey } from "@keys/ECDSAKey";
-import { IPublishPacket } from 'mqtt';
-import { QoS } from "mqtt-packet";
+import type { IHiveKey } from "@hivelib/keys/IHiveKey";
+import { ECDSAKey } from "@hivelib/keys/ECDSAKey";
+import type { IPublishPacket } from 'mqtt';
+import type { QoS } from "mqtt-packet";
 import * as tslog from 'tslog';
 
 const log = new tslog.Logger()

@@ -3,6 +3,7 @@ import {
     Endpoint,
     InclusionResult,
     NodeStatus,
+    PartialZWaveOptions,
     RebuildRoutesStatus,
     RemoveNodeReason,
     TranslatedValueID,
@@ -18,17 +19,24 @@ import fs, { opendir } from "fs";
 import { Logger } from "tslog";
 import { CommandClasses } from '@zwave-js/core';
 import path from "path";
+import { buffer } from "stream/consumers";
 
 const tslog = new Logger({ name: "ZWAPI" })
+
+// Default keys for testing, if none are configured. Please set the keys in config/zwavejs.yaml
+const DefaultS2Authenticated = "00112233445566778899AABBCCDDEEFF"
+const DefaultS2Unauthenticated = "112233445566778899AABBCCDDEEFF00"
+const DefaultS2AccessControl = "2233445566778899AABBCCDDEEFF0011"
+const DefaultS0Legacy = "33445566778899AABBCCDDEEFF001122"
 
 // Configuration of the ZWaveJS driver
 export interface IZWaveConfig {
     // These keys are generated with "< /dev/urandom tr -dc A-F0-9 | head -c32 ;echo"
     // or use MD5(password text)
-    S2_Unauthenticated: string
-    S2_Authenticated: string
-    S2_AccessControl: string
-    S2_Legacy: string
+    S2_Unauthenticated: string | undefined
+    S2_Authenticated: string | undefined
+    S2_AccessControl: string | undefined
+    S0_Legacy: string | undefined
     // disable soft reset on startup. Use if driver fails to connect to the controller
     zwDisableSoftReset: boolean | undefined,
     // controller port: default auto, /dev/serial/by-id/usb...
@@ -48,11 +56,14 @@ export class ZWAPI {
     // driver initializes on connect
     driver!: Driver;
 
-    // callback to notify of a change in node state
-    onStateUpdate: (node: ZWaveNode, newState: string) => void;
+    // callback to notify of fatal error, such as loss of controller connection
+    onFatalError: (e: Error) => void;
 
     // callback to notify of a change in node VID or metadata
     onNodeUpdate: (node: ZWaveNode) => void;
+
+    // callback to notify of a change in node state
+    onStateUpdate: (node: ZWaveNode, newState: string) => void;
 
     // callback to notify of a change in VID value
     onValueUpdate: (node: ZWaveNode, v: TranslatedValueID, newValue: unknown) => void;
@@ -60,17 +71,23 @@ export class ZWAPI {
     // discovered nodes
     nodes: Map<string, ZWaveNode>;
 
+    // doReconnect requests the background connection loop to re-initiate a connection with the controller
+    doReconnect: boolean = false
+
     constructor(
         // handler for node VID or Metadata updates
         onNodeUpdate: (node: ZWaveNode) => void,
         // handler for node property value updates
         onValueUpdate: (node: ZWaveNode, v: TranslatedValueID, newValue: unknown) => void,
         // handler for node state updates
-        onStateUpdate: (node: ZWaveNode, newState: string) => void) {
+        onStateUpdate: (node: ZWaveNode, newState: string) => void,
+        // handler for driver fatal errors
+        onFatalError: (e: Error) => void) {
 
         this.onStateUpdate = onStateUpdate;
         this.onNodeUpdate = onNodeUpdate;
         this.onValueUpdate = onValueUpdate;
+        this.onFatalError = onFatalError;
         this.nodes = new Map<string, ZWaveNode>();
     }
 
@@ -84,9 +101,10 @@ export class ZWAPI {
     }
 
     // connect initializes the zwave-js driver and connect it to the ZWave controller.
-    // @remarks: Connect does not return until disconnect is called..
     //
     // @param zwConfig driver configuration
+    // @param onConnectError when failing to connect to the controller device
+    //  call disconnect to cancel.
     async connect(zwConfig: IZWaveConfig) {
         // autoconfig the zwave port if none given
 
@@ -94,16 +112,23 @@ export class ZWAPI {
         if (!zwPort) {
             tslog.info("serial port not set... searching")
             zwPort = findSerialPort()
+            // zwPort = "/dev/ttyACM0"
         }
         tslog.info("connecting", "port", zwPort)
 
-        let options = {
+        // These keys should be generated with "< /dev/urandom tr -dc A-F0-9 | head -c32 ;echo"
+        let S2_Authenticated = zwConfig.S2_Authenticated || DefaultS2Authenticated
+        let S2_Unauthenticated = zwConfig.S2_Unauthenticated || DefaultS2Unauthenticated
+        let S2_AccessControl = zwConfig.S2_AccessControl || DefaultS2AccessControl
+        let S0_Legacy = zwConfig.S0_Legacy || DefaultS0Legacy
+
+        let options: PartialZWaveOptions = {
             securityKeys: {
                 // These keys should be generated with "< /dev/urandom tr -dc A-F0-9 | head -c32 ;echo"
-                S2_Unauthenticated: Buffer.from(zwConfig.S2_Unauthenticated, "hex"),
-                S2_Authenticated: Buffer.from(zwConfig.S2_Authenticated, "hex"),
-                S2_AccessControl: Buffer.from(zwConfig.S2_AccessControl, "hex"),
-                S0_Legacy: Buffer.from(zwConfig.S2_Legacy, "hex"),
+                S2_Unauthenticated: Buffer.from(S2_Unauthenticated, "hex"),
+                S2_Authenticated: Buffer.from(S2_Authenticated, "hex"),
+                S2_AccessControl: Buffer.from(S2_AccessControl, "hex"),
+                S0_Legacy: Buffer.from(S0_Legacy, "hex"),
             },
             // wait for the device verification before sending value updated event.
             //  instead some kind of 'pending' status should be tracked.
@@ -119,26 +144,60 @@ export class ZWAPI {
                 // allow for a different cache directory
                 cacheDir: zwConfig.cacheDir,
             },
-            // workaround for sticks that don't handle this and refuse connection after reset
-            enableSoftReset: !zwConfig.zwDisableSoftReset,
-        };
-        tslog.info("ZWaveJS config option soft_reset on startup is " + (options.enableSoftReset ? "enabled" : "disabled"))
+            // enableSoftReset: !zwConfig.zwDisableSoftReset,
+            features: {
+                // workaround for sticks that don't handle this and refuse connection after reset
+                softReset: !zwConfig.zwDisableSoftReset,
+            }
 
+        };
+        tslog.info("ZWaveJS config option soft_reset on startup is " + (options.features?.softReset ? "enabled" : "disabled"))
+
+
+        // retry starting the driver until disconnect is called
         // Start the driver. To await this method, put this line into an async method
         this.driver = new Driver(zwPort, options);
 
-        // You must add a handler for the error event before starting the driver
+        // notify of driver errors
         this.driver.on("error", (e) => {
-            this.handleDriverError(e);
+            if (this.onFatalError) {
+                this.onFatalError(e)
+            }
+            // reconnect
+            this.doReconnect = true
         });
 
         // Listen for the driver ready event before doing anything with the driver
         this.driver.once("driver ready", () => {
             this.handleDriverReady()
         });
-
-        await this.driver.start();
+        // wrong serial port is not detected until after the return
+        // this throws an error if connection failed. Up to the caller to retry
+        // onError is not invoked until after a successful connect
+        return this.driver.start();
     }
+
+    // connectLoop auto-reconnects to the controller
+    async connectLoop(zwConfig: IZWaveConfig) {
+        this.doReconnect = true
+
+        // every 3 seconds, check if a reconnect is needed
+        setInterval(() => {
+            if (this.doReconnect) {
+                this.doReconnect = false
+                this.connect(zwConfig)
+                    .then(() => {
+                        tslog.info("connectLoop: connect successful")
+                    })
+                    .catch((e) => {
+                        tslog.error("connectLoop: no connection with controller");
+                        //retry
+                        this.doReconnect = true
+                    })
+            }
+        }, 3000);
+    }
+
 
     // disconnect from the ZWave controller
     async disconnect() {
@@ -176,14 +235,6 @@ export class ZWAPI {
     //   return this.driver.controller.nodes
     // }
 
-
-    // Driver reports and error
-    handleDriverError(e: Error) {
-        // TODO: what do we want to do with errors?
-        // 1: count them to display as a driver property
-        // 2: establish node health
-        tslog.error(e);
-    }
 
     // Driver is ready.
     handleDriverReady() {
@@ -412,27 +463,8 @@ function findSerialPort(): string {
         console.error(err);
     }
 
-    // ports to check with for automatic discovery of ports
-    const AutoPorts = [
-        "/dev/ttyACM0",
-        "/dev/ttyACM1",
-        "/dev/ttyACM2",
-        "/dev/ttyAMA0",
-        "/dev/ttyAMA1",
-        "/dev/ttyAMA2",
-        "/dev/ttyS0",
-        "/dev/ttyS1",
-    ]
-
-    let zwPort = ""
-    // use the first available serial port
-    for (let port of AutoPorts) {
-        if (fs.existsSync(port)) {
-            zwPort = port
-            break
-        }
-    }
-    return zwPort
+    // force an error
+    return "/dev/serialportnotfound"
 
 }
 
