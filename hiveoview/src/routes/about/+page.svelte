@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Card, Heading } from 'flowbite-svelte';
+	import Hcard from '@lib/hotui/HCard.svelte';
 	import LicenseIcon from '~icons/mdi/license';
 	import TextBoxIcon from '~icons/mdi/text-box-outline';
 
@@ -10,19 +10,19 @@
 </script>
 
 <div class="about grid place-content-center">
-	<Card size="lg">
-		<Heading tag="h3" class="text-center mb-5">HiveOView</Heading>
+	<Hcard>
+		<h3 class="text-center mb-5">HiveOView</h3>
 
-		<Card horizontal padding="none" class="mb-5 border-0">
+		<card horizontal padding="none" class="mb-5 border-0">
 			<img src="./logo.svg" alt="logo" class="h-20" />
 
-		<div class="mb-3">
+			<div class="mb-3">
 				<p class="mb-6">
 					The HiveOT Hub Viewer presents information of IoT Things connected to the Hub.
 				</p>
 				<p>Version {version}</p>
 			</div>
-		</Card>
+		</card>
 
 		<footer class="flex justify-between">
 			<a class="flex" href={licenseURL} target="_blank">
@@ -34,7 +34,7 @@
 				Overview
 			</a>
 		</footer>
-	</Card>
+	</Hcard>
 </div>
 
 <style>

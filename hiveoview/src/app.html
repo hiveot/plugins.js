@@ -1,26 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" href="logo.svg" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="description" content="Hive Of Things Viewer">
-		<title>HiveOT</title>
-		%sveltekit.head%
-	</head>
+<html class="dark" lang="en">
 
 
-	<body data-sveltekit-preload-data="hover" class="bg-white dark:bg-gray-800">
+<head>
+	<meta charset="utf-8" />
+	<link rel="icon" href="logo.svg" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="description" content="Hive Of Things Viewer">
+	<title>HiveOT</title>
+	%sveltekit.head%
+</head>
 
-		<div style="display: contents">
-			%sveltekit.body%
-		</div>
-	</body>
+
+<script>
+	// TODO: set the theme. See https://nicobachner.com/sveltekit-theme-switch
+	// Update this in stores.ts and  HTheme.svelte
+
+	// Ignore this in case of SSR prerendering
+	// make sure not to show the app body until the theme is set to switching from
+	// system theme to selected theme.
+	// let currentTheme = "system"
+	// if (typeof window !== "undefined") {
+	// 	currentTheme = localStorage.getItem('data-theme')
+	// }
+	// console.info("setting startup theme to " + currentTheme)
+</script>
+
+<body data-sveltekit-prefetch class="h-full bg-white dark:bg-gray-900">
+
+	<!-- <div style="display: contents" class="h-full overflow-hidden">%sveltekit.body%</div> -->
+	<div>%sveltekit.body%</div>
+</body>
 
 </html>
-
-<style>
-	/* See also: https://www.skeleton.dev/components/app-shell */
-	html, body { @apply h-full overflow-hidden; }
-
-</style>

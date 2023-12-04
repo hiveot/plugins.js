@@ -3,100 +3,95 @@
 </script>
 
 <script lang="ts">
-	import { Checkbox, DarkMode, Navbar, NavBrand, Toggle, Tooltip } from 'flowbite-svelte';
-
-	import DashboardIcon from '~icons/mdi/view-dashboard';
 	import ConnectedIcon from '~icons/mdi/account-network';
-	import DisconnectedIcon from '~icons/mdi/close-network-outline';
-	import RadarIcon from '~icons/mdi/radar';
-	import AboutIcon from '~icons/mdi/information';
-	import ThingsIcon from '~icons/mdi/robot-vacuum';
+	// import DisconnectedIcon from '~icons/mdi/close-network-outline';
+	import DisconnectedIcon from '~icons/mdi/account-network-off-outline';
 
-	import HDropDown from '@lib/components/HDropDown.svelte';
 	import { ConnectionStatus } from '@hivelib/hubclient/transports/IHubTransport';
 	import type { HubClient } from '@hivelib/hubclient/HubClient';
+	import HTooltip from '@lib/hotui/HTooltip.svelte';
+	import HButton from '@lib/hotui/HButton.svelte';
+	import HSpace from '@lib/hotui/HSpace.svelte';
+	import HTab from '@lib/hotui/HTab.svelte';
+	import HTabGroup from '@lib/hotui/HTabGroup.svelte';
+	import HTheme from '@lib/hotui/HTheme.svelte';
+	import HDarkmode from '@lib/hotui/HDarkmode.svelte';
+	import AppMenu from './AppMenu.svelte';
+	import HAppBar from '@lib/hotui/HAppBar.svelte';
+	import { NavHamburger, Toggle } from 'flowbite-svelte';
 	//
 
-	// component properties to be passed in:
-	// @param hc (HubClient) with the hub connection is provided by the parent
+	/**
+	 * The AppHead component shows the persistent header that has two presentation modes,
+	 * In unauthenticated mode the header shows the logo, title, dark mode and connection status button.
+	 * In authenticated mode the dashboard pages, edit mode, and dropdown menu are shown as well.
+	 * Authentication mode is controlled by the hubClient connection status.
+	 */
+
+	/**
+	 * @param hc (HubClient) with the hub connection status.
+	 */
 	export let hc: HubClient;
+
+	/**
+	 * editMode controls
+	 */
+
 	// dashboard edit mode for editing/adding/moving tiles,
 	// controlled through this header.
 	export let editMode = false;
+	// @param show the dashboard edit toggle button
+	export let showDashboardEdit = true;
+
+	//--- Derived properties
 
 	// connection status
 	$: connStat = hc ? hc.connStatus : 'unknown';
 
-	//
+	$: isConnected = hc?.connStatus == 'connected' || false;
 
-	function handleAction(menuItem: any): void {
-		console.log('action: ' + menuItem.label);
-	}
-
-	function setEditMode(): void {
-		editMode = !editMode;
-		console.log('setEditMode to ', editMode);
-	}
-
-	// connIcon is derived for display
+	// connIcon connection indicator
 	$: connIcon = hc.connStatus === ConnectionStatus.Connected ? ConnectedIcon : DisconnectedIcon;
-
-	// the menu must be reactive to show the current edit mode
-	$: menuItems = [
-		{ icon: DashboardIcon, label: 'Dashboard', href: '/dashboard' },
-		{},
-		{
-			icon: Checkbox,
-			label: 'Edit Mode',
-			attr: { checked: editMode },
-			onClick: setEditMode
-		},
-		// { label: "Add Dashboard"},
-		{},
-		{ icon: ThingsIcon, label: 'Things', href: '/things' },
-		{ icon: AboutIcon, label: 'About', href: '/about' }
-	];
 </script>
 
 <!--Utilize the full width-->
-<Navbar navDivClass="mx:auto flex flex-wrap w-full max-w-none justify-between items-center">
-	<NavBrand href="/">
-		<img src="./logo.svg" alt="logo" class="logo" height="42" />
-		<strong class="text-xl uppercase">HiveOT</strong>
-	</NavBrand>
-
+<HAppBar logo="./logo.svg" title="HiveOT" height="12">
+	<!-- Show hamburger menu on small screens instead of the page tabs -->
+	<!-- <NavHamburger /> -->
 	<!-- page tabs-->
-	<span class="grow" />
-	<!--    Edit button-->
-	<Toggle disabled size="small" checked={false}>Edit</Toggle>
-	<Tooltip placement="bottom">Toggle dashboard edit mode</Tooltip>
+	<!-- <NavHamburger />
+	<svelte:fragment slot="menu">
+		<HTabGroup>
+			<HTab>Page1</HTab>
+			<HTab>Page2</HTab>
+		</HTabGroup>
+	</svelte:fragment> -->
 
-	<!-- One button to rule the night-->
-	<DarkMode />
-	<Tooltip placement="bottom">Hive at night</Tooltip>
+	<!-- <div class="flex gap-0 text-gray-900 dark:text-gray-100"> -->
+	<svelte:fragment slot="trail">
+		<span class="flex space-x-2">
+			<!-- dashboard edit toggle -->
+			{#if isConnected}
+				<span class="flex {showDashboardEdit ? 'visible' : 'invisible'}">
+					<Toggle name="slide" size="small" bind:checked={editMode}>
+						<HTooltip placement="bottom">Toggle dashboard edit mode</HTooltip>
+					</Toggle>
+				</span>
+			{/if}
 
-	<!-- network/settings status-->
-	<a href="/login">
-		<svelte:component
-			this={connIcon}
-			class="h-5 transition duration-1000 delay-150
-        {hc.connStatus === ConnectionStatus.Connecting ? 'animate-spin' : ''}
-        {hc.connStatus === ConnectionStatus.Connected ? 'dark:text-green-400 text-green-400' : ''}"
-		/>
-	</a>
-	<Tooltip placement="bottom">{hc.connInfo}</Tooltip>
+			<!-- One button to rule the night-->
+			<HDarkmode tooltip="Toggle day/night mode" />
+			<!-- <HToolTip placement="bottom">Toggle day/night mode</HToolTip> -->
 
-	<!-- Last, the menu dropdown-->
-	<HDropDown
-		menu={menuItems}
-		onClick={(item) => {
-			handleAction(item);
-		}}
-	/>
-</Navbar>
+			<!-- connection status -->
+			<HButton icon={connIcon} />
 
-<style>
-	.logo {
-		height: 32px;
-	}
-</style>
+			<!-- <HToolTip placement="bottom">{hc.connInfo}</HToolTip> -->
+
+			<!-- Last, the menu dropdown-->
+			{#if isConnected}
+				<AppMenu bind:editMode />
+			{/if}
+		</span>
+	</svelte:fragment>
+</HAppBar>

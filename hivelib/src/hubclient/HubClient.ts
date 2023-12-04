@@ -133,10 +133,13 @@ export class HubClient {
 
 	// connect and login to the Hub gateway using a JWT token
 	// host is the server address
-	async connectWithToken(kp: IHiveKey, jwtToken: string) {
+	async connectWithToken(kp: IHiveKey | undefined, jwtToken: string) {
 
 		// pass-through to the underlying transport
-		return this.tp.connectWithToken(kp, jwtToken);
+		if (kp) {
+			return this.tp.connectWithToken(kp, jwtToken);
+		}
+		return
 	}
 
 	// ConnectWithPassword connects to the Hub server using the clientID and password.

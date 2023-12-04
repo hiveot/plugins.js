@@ -2,16 +2,15 @@
 	import { enhance } from '$app/forms'; // magic???
 	import { get } from 'svelte/store';
 	import { onMount, tick } from 'svelte';
-	import { Button, FloatingLabelInput, Heading, Label, Toggle } from 'flowbite-svelte';
+	import { Button, Input, Label, Toggle } from 'flowbite-svelte';
+	import HForm from '@lib/hotui/HForm.svelte';
 
-	/** @type {import("../../../.svelte-kit/types/src/routes").PageData} */
 	export let data;
-	/** @type {import("../../../.svelte-kit/types/src/routes").ActionData} */
 	export let form;
 
 	// reactive properties
 	// start with an empty account record
-	let rememberMe = data.rememberMe == 'true';
+	let rememberMe = true; //data.rememberMe == 'true';
 	let password = '';
 	$: isDisabled = data.loginID == '' || password == '';
 
@@ -22,44 +21,36 @@
 	// });
 </script>
 
-<div class="grid place-content-center h-full space-y-3">
-	<!-- If no account is setup then ask for credentials -->
-	<Heading tag="h4" class="">Login to the Hub</Heading>
-
-	<form class="space-y-3 min-w-[400px]" method="POST" action="?/dologin" use:enhance>
-		{#if form?.incorrect}<p class="error">Invalid password for user {data.loginID}</p>{/if}
-		{#if form?.success}<p class="success">Login success as user {data.loginID}</p>
-		{:else}
-			<!-- Login ID and password input -->
-			<FloatingLabelInput
-				name="loginID"
-				label="Email"
+<div class="h-full flex flex-col justify-center">
+	<HForm title="Login to the Hub" center showSubmit>
+		<!-- Login ID and password input -->
+		<div>
+			<Label class="mb-2">Login email</Label>
+			<Input
+				id="loginID"
+				title="Email"
 				type="text"
 				bind:value={data.loginID}
 				required
 				autocomplete="off"
 			/>
-			<FloatingLabelInput
-				name="password"
-				label="Password"
+		</div>
+		<div>
+			<Label class="mb-2">Password</Label>
+			<Input
+				id="password"
+				title="Password"
 				type="password"
+				placehold="•••••••••"
 				bind:value={password}
 				required
 				autocomplete="off"
 			/>
-
-			<!-- Remember the login info between sessions -->
-			<div class="flex place-content-end space-x-2">
-				<Label>Remember Me</Label>
-				<Toggle name="rememberMe" bind:checked={rememberMe} />
-			</div>
-
-			<!-- Footer button -->
-			<footer class="flex justify-between pt-5">
-				<Button type="cancel" href="/">Cancel</Button>
-
-				<Button type="submit" disabled={isDisabled}>Login</Button>
-			</footer>
-		{/if}
-	</form>
+		</div>
+		<!-- Remember the login info between sessions -->
+		<div class="flex flex-row gap-2 place-content-end w-full">
+			Remember Me
+			<Toggle classDiv="mr-0" name="rememberMe" bind:checked={rememberMe} />
+		</div>
+	</HForm>
 </div>

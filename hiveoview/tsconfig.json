@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"allowJs": true,
 		"baseUrl": ".",
-		"checkJs": false,
+		"checkJs": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		// "module": "CommonJS",
@@ -48,7 +48,8 @@
 	],
 	"exclude": [
 		"./build",
-		"./dist"
+		"./dist",
+		"./assets"
 	]
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
 	//

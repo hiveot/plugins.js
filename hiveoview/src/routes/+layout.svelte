@@ -2,33 +2,36 @@
 	import type { HubClient } from '@hivelib/hubclient/HubClient';
 	import '../app.postcss';
 
-	import AppHead from './app/AppHead.svelte';
-	import { onMount } from 'svelte';
+	// activate stores for use in modal, light switch, etc
+	// import { initializeStores, getModeUserPrefers } from '@skeletonlabs/skeleton';
+	// initializeStores();
 
-	// import type { PageData } from '../../.svelte-kit/types/src/routes';
+	// for popups such as tooltips and menus: https://www.skeleton.dev/utilities/popups
+	// import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
+	// import { storePopup } from '@skeletonlabs/skeleton';
+	// storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
+
+	// app layout
+	import AppHead from './app/AppHead.svelte';
+	import HApp from '@lib/hotui/HApp.svelte';
 
 	// data exported by layout.ts load()
-	/** @type {import("../../.svelte-kit/types/src/routes").PageData} */
 	export let data;
 
 	let hc: HubClient;
 
 	$: loginID = data.loginID;
 	$: hc = data.hc;
-
-	// console.info("onMount. data=", data);
-	onMount(async () => {
-		console.info('onMount. data=', data);
-	});
 </script>
 
-<div class="flex flex-col max-auto w-full h-full">
-	<!--  <AppHead connectionStatus="{data.conStat}"></AppHead>-->
-	<AppHead {loginID} {hc} } />
+<!-- <svelte:window bind:innerWidth={width} /> -->
+<HApp>
+	<AppHead {hc} />
 
 	<!-- Router Slot -->
 	<slot />
+
 	<p>connected as {loginID}: {hc.connStatus}</p>
 
 	<!--	<svelte:fragment slot="footer">Footer</svelte:fragment>-->
-</div>
+</HApp>

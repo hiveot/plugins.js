@@ -6,36 +6,17 @@
     "configurations": [
         {
             "name": "Attach to Chrome",
+            "port": 9222,
             "request": "attach",
             "type": "chrome",
-            "port": 9222,
-            "webRoot": "${workspaceFolder}",
+            "webRoot": "${workspaceFolder}"
         },
         {
-            // "type": "pwa-chrome",
-            "name": "Launch Chrome",
+            "name": "vavite loader",
+            "command": "npx vavite-loader vite dev --port 3000",
             "request": "launch",
-            "type": "chrome",
-            "port": 9222,
-            "webRoot": "${workspaceFolder}/src",
-            "url": "http://localhost:3000",
-        },
-        {
-            "name": "Launch FF localhost:3000",
-            "request": "launch",
-            "type": "firefox",
-            "reAttach": true,
-            "webRoot": "${workspaceFolder}",
-            "url": "http://localhost:3000",
-            "tmpDir": "${workspaceFolder}"   // prevent FF profile error
-        },
-        // debug svelte serverside by launching this and run chrome manually
-        {
-			"name": "Debug SvelteKit",
-            "command": "yarn vavite-loader vite dev --port 3000",
-			"request": "launch",
-			"type": "node-terminal",
-			// "cwd": "${workspaceFolder}"
+            "type": "node-terminal",
+            // "cwd": "${workspaceFolder}"
         }
     ]
 }

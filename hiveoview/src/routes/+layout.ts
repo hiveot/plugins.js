@@ -18,10 +18,12 @@ export async function load(ev: ServerLoadEvent) {
 	const core = ev.cookies?.get('core') || '';
 
 	const hc = NewHubClient("", loginID, caCertPem, core)
-	const kp = hc.createKeyPair()
-	if (serializedKey) {
-		kp.importPrivate(serializedKey)
-	}
+	let kp = undefined
+	// const kp = hc.createKeyPair()
+	// if (serializedKey) {
+	// 	kp.importPrivate(serializedKey)
+	// }
+
 
 	if (isConnected) {
 		await hc.connectWithToken(kp, authToken);
